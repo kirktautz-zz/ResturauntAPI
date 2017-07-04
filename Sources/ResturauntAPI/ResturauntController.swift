@@ -45,8 +45,8 @@ public final class ResturauntController {
         // delete a menu item path
         router.delete("\(menuItemsPath)/:id", handler: self.deleteMenuItem)
         
-        // find items by type path
-        router.get("\(menuItemsPath)/categories/:type", handler: self.getMenuItemByType)
+        // find items by type path or subtype
+        router.get("\(menuItemsPath)/categories/:type/:subtype?", handler: self.getMenuItemByType)
         
     }
     
@@ -209,7 +209,9 @@ public final class ResturauntController {
             return
         }
         
-        rest.getItemsByType(type: type) { (retrievedItems, error) in
+        let subType = request.parameters["subtype"]
+        
+        rest.getItemsByType(type: type, subType: subType) { (retrievedItems, error) in
             
             guard error == nil else {
                 Log.error("Could not find items with that type")

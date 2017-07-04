@@ -34,6 +34,7 @@ public protocol ResturauntAPI {
     func clearMenuItems(completion: (Error?) -> Void)
     
     // get items by type
-    func getItemsByType(type: String, completion: @escaping ([MenuItem]?, Error?) -> Void)
+    func getItemsByType(type: String, subType: String?, completion: @escaping ([MenuItem]?, Error?) -> Void)
+    
     
 }

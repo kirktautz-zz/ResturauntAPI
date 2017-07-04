@@ -274,7 +274,7 @@ public class Resturaunt: ResturauntAPI {
     }
     
     // get items by type
-    public func getItemsByType(type: String, completion: @escaping ([MenuItem]?, Error?) -> Void){
+    public func getItemsByType(type: String, subType: String?, completion: @escaping ([MenuItem]?, Error?) -> Void){
         
         guard let db = try? connectToDB(), db != nil else {
             Log.error("Could not connect to database")
@@ -285,7 +285,12 @@ public class Resturaunt: ResturauntAPI {
         
         let collection = db!["menu_item"]
         
-        let query: Query = "itemtype" == type
+        let query: Query
+        if subType != nil {
+            query = "itemsubtype" == subType
+        } else {
+            query = "itemtype" == type
+        }
         
         do {
             let retResults = try collection.find(query)
