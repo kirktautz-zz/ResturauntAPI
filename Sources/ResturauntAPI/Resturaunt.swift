@@ -286,6 +286,7 @@ public class Resturaunt: ResturauntAPI {
         let collection = db!["menu_item"]
         
         let query: Query
+        
         if subType != nil {
             query = "itemsubtype" == subType
         } else {
@@ -312,6 +313,30 @@ public class Resturaunt: ResturauntAPI {
             completion(itemsArr, nil)
             
         } catch {
+            
+        }
+    }
+    
+    // Count of all menu items
+    public func countMenuItems(completion: @escaping (Int?, Error?) ->Void) {
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil, APICollectionError.databaseError)
+            
+            return
+        }
+        
+        let collection = db!["menu_item"]
+        
+        do {
+            let results = try collection.find()
+            let count = try results.count()
+            
+            Log.info("query return \(count) items")
+            completion(count, nil)
+        } catch {
+            Log.error("Could not get count")
+            completion(nil, APICollectionError.databaseError)
             
         }
     }

@@ -52,19 +52,19 @@
     {
       "package": "Kitura",
       "reason": null,
-      "repositoryURL": "https://github.com/IBM-Swift/Kitura.git",
+      "repositoryURL": "https://github.com/IBM-Swift/Kitura",
       "version": "1.7.6"
+    },
+    {
+      "package": "Kitura-Credentials",
+      "reason": null,
+      "repositoryURL": "https://github.com/IBM-Swift/Kitura-Credentials",
+      "version": "1.7.2"
     },
     {
       "package": "Kitura-Session",
       "reason": null,
       "repositoryURL": "https://github.com/IBM-Swift/Kitura-Session.git",
-      "version": "1.7.0"
-    },
-    {
-      "package": "Kitura-Session-Redis",
-      "reason": null,
-      "repositoryURL": "https://github.com/IBM-Swift/Kitura-Session-Redis",
       "version": "1.7.0"
     },
     {
@@ -108,12 +108,6 @@
       "reason": null,
       "repositoryURL": "https://github.com/IBM-Swift/BlueSocket.git",
       "version": "0.12.55"
-    },
-    {
-      "package": "SwiftRedis",
-      "reason": null,
-      "repositoryURL": "https://github.com/IBM-Swift/Kitura-redis.git",
-      "version": "1.7.0"
     },
     {
       "package": "SwiftyJSON",

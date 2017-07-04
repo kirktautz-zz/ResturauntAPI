@@ -15,6 +15,7 @@ protocol Item {
 public protocol ResturauntAPI {
     
     // MARK: Menu items
+    
     // Get all menu items
     func getMenuItems(completion: @escaping ([MenuItem]?, Error?) -> Void)
     
@@ -33,8 +34,33 @@ public protocol ResturauntAPI {
     // clear all items
     func clearMenuItems(completion: (Error?) -> Void)
     
-    // get items by type
+    // get menu items by type
     func getItemsByType(type: String, subType: String?, completion: @escaping ([MenuItem]?, Error?) -> Void)
+    
+    // get count of all menu items
+    func countMenuItems(completion: @escaping (Int?, Error?) ->Void)
+    
+//    // MARK: - Event items
+//    
+//    // get all events
+//    func getEventItems(completion: @escaping ([EventItem]?, Error?) -> Void)
+//    
+//    // get specific event item
+//    func getEventItem(id: String, completion: @escaping (EventItem?, Error?) ->Void)
+//    
+//    // add event item
+//    func addEvent(eventName: String, eventDate: String, completion: @escaping (EventItem?, Error?) -> Void)
+//    
+//    // edit event item
+//    func editEvent(id: String, eventName: String?, eventDate: String?, completion: @escaping (EventItem?, Error?) -> Void)
+//    
+//    // delete event
+//    func deleteEvent(id: String, completion: @escaping (Error?) -> Void)
+    
+    
+    
+    
+    
     
     
 }

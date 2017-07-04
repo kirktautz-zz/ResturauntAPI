@@ -17,6 +17,7 @@ public final class ResturauntController {
     public let router = Router()
     public let port = 8090
     public let menuItemsPath = "api/v1/menu_items"
+    public let eventItemsPath = "api/v1/event_items"
     
     public init(backend: ResturauntAPI) {
         self.rest = backend
@@ -29,6 +30,9 @@ public final class ResturauntController {
         
         // middleware for parsing body requests
         router.all("/*", middleware: BodyParser())
+        
+        // get count of all menu items
+        router.get("\(menuItemsPath)/count", handler: self.getMenuItemsCount)
         
         // get all menu items path
         router.get("\(menuItemsPath)", handler: self.getAllItems)
@@ -87,7 +91,9 @@ public final class ResturauntController {
     // GET handler for getting all items
     private func getAllItems(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
+        defer { next() }
         rest.getMenuItems { (items, error) in
+            
             guard error == nil else {
                 Log.error(error!.localizedDescription)
                 response.status(.badRequest)
@@ -116,7 +122,10 @@ public final class ResturauntController {
             return
         }
         
+        defer { next() }
+        
         rest.getMenuItem(id: id) { (menuItem, error) in
+            
             guard error == nil else {
                 Log.error("Could not get menu item")
                 try? response.status(.badRequest).end()
@@ -157,6 +166,8 @@ public final class ResturauntController {
         let price: Double? = json["itemprice"].doubleValue == 0 ? nil : json["itemprice"].doubleValue
         let imgUrl: String? = json["imgurl"].stringValue == "" ? nil : json["imgurl"].stringValue
         
+        defer { next() }
+        
         rest.editMenuFoodItem(id: id, itemType: type, itemSubType: subType, itemName: name, itemPrice: price, imgUrl: imgUrl) { (item, error) in
             
             guard error == nil else {
@@ -188,7 +199,10 @@ public final class ResturauntController {
             return
         }
         
+        defer { next() }
         rest.deleteMenuItem(id: id) { (error) in
+            
+            
             if error == nil {
                 Log.info("Successfully deleted item")
                 try? response.status(.OK).send("Item deleted successfully").end()
@@ -211,6 +225,7 @@ public final class ResturauntController {
         
         let subType = request.parameters["subtype"]
         
+        defer { next() }
         rest.getItemsByType(type: type, subType: subType) { (retrievedItems, error) in
             
             guard error == nil else {
@@ -229,6 +244,20 @@ public final class ResturauntController {
             try? response.status(.internalServerError).end()
             Log.error("Communications error")
             
+        }
+    }
+    
+    // get count of all menu items
+    private func getMenuItemsCount(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        
+        rest.countMenuItems { (count, error) in
+            guard error == nil else {
+                Log.error("Could not get count of menu items")
+                response.status(.internalServerError)
+                return
+            }
+            
+            try? response.status(.OK).send(json: JSON(["count" : count])).end()
         }
     }
 }
