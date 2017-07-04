@@ -27,10 +27,26 @@ public final class ResturauntController {
     // MARK: - Routes
     public func routerSetup() {
         
+        // middleware for parsing body requests
         router.all("/*", middleware: BodyParser())
-        router.get("\(menuItemsPath))", handler: self.getAllItems)
+        
+        // get all menu items path
+        router.get("\(menuItemsPath)", handler: self.getAllItems)
+        
+        // get specific menu item path
+        router.get("\(menuItemsPath)/:id", handler: self.getMenuItem)
+        
+        // post a menu item path
         router.post("\(menuItemsPath)", handler: self.addMenuItem)
+        
+        // edit a menu item path
         router.put("\(menuItemsPath)/:id", handler: self.editMenuItem)
+        
+        // delete a menu item path
+        router.delete("\(menuItemsPath)/:id", handler: self.deleteMenuItem)
+        
+        // find items by type path
+        router.get("\(menuItemsPath)/categories/:type", handler: self.getMenuItemByType)
         
     }
     
@@ -91,6 +107,30 @@ public final class ResturauntController {
         }
     }
     
+    // Getting a specific item
+    private func getMenuItem(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        
+        guard let id = request.parameters["id"] else {
+            Log.error("ID not specified in request")
+            response.status(.badRequest)
+            return
+        }
+        
+        rest.getMenuItem(id: id) { (menuItem, error) in
+            guard error == nil else {
+                Log.error("Could not get menu item")
+                try? response.status(.badRequest).end()
+                return
+            }
+            
+            if let menuItem = menuItem {
+                try? response.status(.OK).send(json: JSON(menuItem.toDict())).end()
+                Log.info("Found menu item")
+            }
+        }
+    }
+    
+    // Editing a menu item
     private func editMenuItem(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
         guard let id = request.parameters["id"] else {
@@ -117,8 +157,6 @@ public final class ResturauntController {
         let price: Double? = json["itemprice"].doubleValue == 0 ? nil : json["itemprice"].doubleValue
         let imgUrl: String? = json["imgurl"].stringValue == "" ? nil : json["imgurl"].stringValue
         
-        print("NAME: \(name)")
-        
         rest.editMenuFoodItem(id: id, itemType: type, itemSubType: subType, itemName: name, itemPrice: price, imgUrl: imgUrl) { (item, error) in
             
             guard error == nil else {
@@ -142,4 +180,53 @@ public final class ResturauntController {
         
     }
     
+    // Delete a menu item
+    private func deleteMenuItem(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        guard let id = request.parameters["id"] else {
+            Log.error("ID not found in request")
+            response.status(.badRequest)
+            return
+        }
+        
+        rest.deleteMenuItem(id: id) { (error) in
+            if error == nil {
+                Log.info("Successfully deleted item")
+                try? response.status(.OK).send("Item deleted successfully").end()
+            } else {
+                Log.error("Could not delete item")
+                try? response.status(.internalServerError).end()
+            }
+            
+            
+        }
+    }
+    
+    // Get menu items by type
+    private func getMenuItemByType(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        guard let type = request.parameters["type"] else {
+            Log.error("Could not find type in request")
+            response.status(.badRequest)
+            return
+        }
+        
+        rest.getItemsByType(type: type) { (retrievedItems, error) in
+            
+            guard error == nil else {
+                Log.error("Could not find items with that type")
+                try? response.status(.badRequest).end()
+                return
+            }
+            
+            if let items = retrievedItems {
+                
+                try? response.status(.OK).send(json: JSON(items.toDict())).end()
+                Log.info("Display items by type")
+                
+            }
+            
+            try? response.status(.internalServerError).end()
+            Log.error("Communications error")
+            
+        }
+    }
 }
