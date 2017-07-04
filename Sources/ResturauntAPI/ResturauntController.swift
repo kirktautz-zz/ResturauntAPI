@@ -21,6 +21,7 @@ public final class ResturauntController {
     public init(backend: ResturauntAPI) {
         self.rest = backend
         routerSetup()
+        
     }
     
     // MARK: - Routes
@@ -29,8 +30,11 @@ public final class ResturauntController {
         router.all("/*", middleware: BodyParser())
         router.get("\(menuItemsPath))", handler: self.getAllItems)
         router.post("\(menuItemsPath)", handler: self.addMenuItem)
+        router.put("\(menuItemsPath)/:id", handler: self.editMenuItem)
+        
     }
     
+    // POST handler for adding a menu item
     private func addMenuItem(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
         guard let body = request.body else {
@@ -50,9 +54,8 @@ public final class ResturauntController {
         let itemName: String = json["itemname"].stringValue
         let itemPrice: Double = json["itemprice"].doubleValue
         let imgUrl: String = json["imgurl"].stringValue
-        let date: String = json["date"].stringValue
         
-        rest.addMenuFoodItem(itemType: itemType, itemSubType: itemSubType, itemName: itemName, itemPrice: itemPrice, imgUrl: imgUrl, date: date) { (menuItem, error) in
+        rest.addMenuFoodItem(itemType: itemType, itemSubType: itemSubType, itemName: itemName, itemPrice: itemPrice, imgUrl: imgUrl) { (menuItem, error) in
             guard error == nil else {
                 Log.error(error!.localizedDescription)
                 try? response.status(.badRequest).end()
@@ -65,6 +68,7 @@ public final class ResturauntController {
         }
     }
     
+    // GET handler for getting all items
     private func getAllItems(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
         rest.getMenuItems { (items, error) in
@@ -85,6 +89,57 @@ public final class ResturauntController {
                 Log.error("Communications error")
             }
         }
+    }
+    
+    private func editMenuItem(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        
+        guard let id = request.parameters["id"] else {
+            Log.error("ID not specified in request")
+            response.status(.badRequest)
+            return
+        }
+        
+        guard let body = request.body else {
+            Log.error("Body not found in request")
+            response.status(.badRequest)
+            return
+        }
+        
+        guard case let .json(json) = body else {
+            Log.error("Invalid JSON specified")
+            response.status(.badRequest)
+            return
+        }
+        
+        let name: String? = json["itemname"].stringValue == "" ? nil : json["itemname"].stringValue
+        let type: String? = json["itemtype"].stringValue == "" ? nil : json["itemtype"].stringValue
+        let subType: String? = json["itemsubtype"].stringValue == "" ? nil : json["itemsubtype"].stringValue
+        let price: Double? = json["itemprice"].doubleValue == 0 ? nil : json["itemprice"].doubleValue
+        let imgUrl: String? = json["imgurl"].stringValue == "" ? nil : json["imgurl"].stringValue
+        
+        print("NAME: \(name)")
+        
+        rest.editMenuFoodItem(id: id, itemType: type, itemSubType: subType, itemName: name, itemPrice: price, imgUrl: imgUrl) { (item, error) in
+            
+            guard error == nil else {
+                Log.error(error!.localizedDescription)
+                response.status(.badRequest)
+                return
+            }
+            
+            do {
+                if let item = item {
+                    try response.status(.OK).send(json: JSON(item.toDict())).end()
+                    Log.info("Updated item: \(id)")
+                } else {
+                    Log.error("Could not unwrap item")
+                }
+            } catch {
+                Log.error("Communications error")
+            }
+            
+        }
+        
     }
     
 }

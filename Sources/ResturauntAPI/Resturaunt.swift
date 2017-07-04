@@ -73,7 +73,7 @@ public class Resturaunt: ResturauntAPI {
             var itemsArr = [MenuItem]()
             for item in recievedItems {
                 if let id = String(item["_id"]), let name = String(item["itemname"]), let price = Double(item["itemprice"]), let type = String(item["itemtype"]), let subType = String(item["itemsubtype"]), let imgUrl = String(item["imgurl"]), let date = String(item["date"]) {
-                
+                    
                     let newItem = MenuItem(id: id, name: name, price: price, type: type, subType: subType, imgUrl: imgUrl, date: date)
                     
                     itemsArr.append(newItem)
@@ -81,7 +81,7 @@ public class Resturaunt: ResturauntAPI {
                     completion(nil, APICollectionError.parseError)
                     Log.warning("Could not get values from document")
                 }
-               
+                
             }
             
             completion(itemsArr, nil)
@@ -96,7 +96,7 @@ public class Resturaunt: ResturauntAPI {
     
     
     // add new menu item
-    public func addMenuFoodItem(itemType: String, itemSubType: String, itemName: String, itemPrice: Double, imgUrl: String, date: String, completion: @escaping (MenuItem?, Error?) -> Void) {
+    public func addMenuFoodItem(itemType: String, itemSubType: String, itemName: String, itemPrice: Double, imgUrl: String, completion: @escaping (MenuItem?, Error?) -> Void) {
         
         guard let db = try? connectToDB(), db != nil else {
             Log.error("Could not connect to database")
@@ -106,6 +106,11 @@ public class Resturaunt: ResturauntAPI {
         }
         
         let collection = db!["menu_item"]
+        
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .medium
+        let date = formatter.string(from: Date())
         
         let document: Document = [
             "itemtype" : itemType,
@@ -129,6 +134,64 @@ public class Resturaunt: ResturauntAPI {
             }
         } catch {
             Log.warning("Could not add document")
+        }
+        
+    }
+    
+    // edit an existing menu item. If values are nil, the saved data will be used
+    public func editMenuFoodItem(id: String, itemType: String?, itemSubType: String?, itemName: String?, itemPrice: Double?, imgUrl: String?, completion: @escaping (MenuItem?, Error?) -> Void) {
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil, APICollectionError.databaseError)
+            
+            return
+        }
+        
+        let collection = db!["menu_item"]
+        
+        do {
+            
+            let objectId = try ObjectId(id)
+            let query: Query = "_id" == objectId
+            
+            if let result = try collection.findOne(query) {
+                guard let dbName = String(result["itemname"]), let dbPrice = Double(result["itemprice"]), let dbType = String(result["itemtype"]), let dbSubType = String(result["itemsubtype"]), let dbImgUrl = String(result["imgurl"]) else {
+                    Log.error("Document data is incomplete")
+                    completion(nil, APICollectionError.databaseError)
+                    return
+                }
+                
+                let name = itemName ?? dbName
+                let type = itemType ?? dbType
+                let subType = itemSubType ?? dbSubType
+                let price = itemPrice ?? dbPrice
+                let img = imgUrl ?? dbImgUrl
+                
+                let formatter = DateFormatter()
+                formatter.dateStyle = .medium
+                formatter.timeStyle = .medium
+                let date = formatter.string(from: Date())
+                
+                let updatedDocumet: Document = [
+                    "itemtype" : type,
+                    "itemsubtype" : subType,
+                    "itemname" : name,
+                    "itemprice" : price,
+                    "imgurl" : img,
+                    "date" : date
+                ]
+                
+                try collection.update("_id" == objectId, to: updatedDocumet)
+                let menuItem = MenuItem(id: id, name: name, price: price, type: type, subType: subType, imgUrl: img, date: date)
+                completion(menuItem, nil)
+                
+            } else {
+                Log.error("Could not unwrap result")
+                completion(nil, APICollectionError.databaseError)
+            }
+            
+        } catch {
+            Log.error("Could not find document")
         }
         
     }

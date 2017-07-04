@@ -19,6 +19,9 @@ public protocol ResturauntAPI {
     func getMenuItems(completion: @escaping ([MenuItem]?, Error?) -> Void)
     
     // Add new menu item
-    func addMenuFoodItem(itemType: String, itemSubType: String, itemName: String, itemPrice: Double, imgUrl: String, date: String, completion: @escaping (MenuItem?, Error?) -> Void)
+    func addMenuFoodItem(itemType: String, itemSubType: String, itemName: String, itemPrice: Double, imgUrl: String, completion: @escaping (MenuItem?, Error?) -> Void)
+    
+    // Edit menu item
+    func editMenuFoodItem(id: String, itemType: String?, itemSubType: String?, itemName: String?, itemPrice: Double?, imgUrl: String?, completion: @escaping (MenuItem?, Error?) -> Void)
     
 }
