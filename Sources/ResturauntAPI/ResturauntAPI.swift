@@ -60,7 +60,10 @@ public protocol ResturauntAPI {
 //    // delete event
 //    func deleteEvent(id: String, completion: @escaping (Error?) -> Void)
     
+   // MARK: - User
     
+    // get all users
+    func getAllUsers(completion: @escaping ([User]?, Error?) -> Void)
     
     
     

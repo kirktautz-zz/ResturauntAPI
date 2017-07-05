@@ -34,24 +34,34 @@ public class Resturaunt: ResturauntAPI {
     // setup basic auth
     func setupAuth() {
         
+        // Create plugin for Basic Auth
         let basicCreds = CredentialsHTTPBasic(verifyPassword: { userId, password, callback in
             
+            // Get all users from database
             self.getAllUsers(completion: { (users, error) in
                 guard error == nil else {
                     Log.error("Error getting users")
                     return
                 }
                 
+                // unwrap and loop through users
                 if let users = users {
                     
                     for user in users {
                         if user.username == userId {
                             
-                            print(user)
-                            
-                            callback(UserProfile(id: user.userId, displayName: user.username, provider: "Resturaunt"))
-                            
-                            break
+                            // When a name matches, check it's password
+                            if let result = try? user.password.verifyPassword(password, user.salt) {
+                                
+                                // if the password is correct, break the loop
+                                if result {
+                                    callback(UserProfile(id: user.userId, displayName: user.username, provider: "Resturaunt"))
+                                    Log.info("Welcome \(user.username)")
+                                    
+                                    break
+                                }
+                                
+                            }
                         }
                     }
                 }
