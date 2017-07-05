@@ -75,6 +75,48 @@ public class Resturaunt: ResturauntAPI {
             callback(nil)
         }, realm: "Users")
         
+        // TODO: - create admin authentication
+        
+//        let adminCreds = CredentialsHTTPBasic(verifyPassword: { userId, password, callback in
+//            
+//            // Get all users from database
+//            self.getAllUsers(completion: { (users, error) in
+//                guard error == nil else {
+//                    Log.error("Error getting users")
+//                    return
+//                }
+//                
+//                // unwrap and loop through users
+//                if let users = users {
+//                    
+//                    for user in users {
+//                        if user.username == userId {
+//                            
+//                            // When a name matches, check it's password
+//                            if let result = try? user.password.verifyPassword(password, user.salt) {
+//                                
+//                                // if the password is correct, break the loop
+//                                if result {
+//                                    callback(UserProfile(id: user.userId, displayName: user.username, provider: "Resturaunt"))
+//                                    Log.info("Welcome \(user.username)")
+//                                    
+//                                    break
+//                                } else {
+//                                    Log.warning("Invalid password")
+//                                }
+//                            }
+//                        } else {
+//                            Log.warning("Username not found")
+//                        }
+//                    }
+//                } else {
+//                    Log.error("Could not unwrap data from database")
+//                }
+//            })
+//            
+//            callback(nil)
+//        }, realm: "Users")
+        
         credentials.register(plugin: basicCreds)
     }
     
