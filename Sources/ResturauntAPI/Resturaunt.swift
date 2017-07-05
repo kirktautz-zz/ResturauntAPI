@@ -10,6 +10,9 @@ import Foundation
 import SwiftyJSON
 import LoggerAPI
 import MongoKitten
+import Credentials
+import CredentialsHTTP
+import Cryptor
 
 public enum APICollectionError: Error {
     case parseError
@@ -19,12 +22,48 @@ public enum APICollectionError: Error {
 
 public class Resturaunt: ResturauntAPI {
     
-    private let mongoUrl = "mongodb://kirk:888323@localhost:27017"
+    private let mongoUrl = "mongodb://localhost:27017"
+    public let credentials = Credentials()
     
     // initialize and setup db
     public init() {
         setupDB()
+        setupAuth()
     }
+    
+    // setup basic auth
+    func setupAuth() {
+        
+        let basicCreds = CredentialsHTTPBasic(verifyPassword: { userId, password, callback in
+            
+            self.getAllUsers(completion: { (users, error) in
+                guard error == nil else {
+                    Log.error("Error getting users")
+                    return
+                }
+                
+                if let users = users {
+                    
+                    for user in users {
+                        if user.username == userId {
+                            
+                            print(user)
+                            
+                            callback(UserProfile(id: user.userId, displayName: user.username, provider: "Resturaunt"))
+                            
+                            break
+                        }
+                    }
+                }
+            })
+            
+            callback(nil)
+        }, realm: "Users")
+        
+        credentials.register(plugin: basicCreds)
+    }
+    
+    
     
     // Check connection to MongoDB is successful
     private func setupDB() {
@@ -339,5 +378,66 @@ public class Resturaunt: ResturauntAPI {
             completion(nil, APICollectionError.databaseError)
             
         }
+    }
+    
+    // MARK: - User mothds
+    
+    // get all users
+    public func getAllUsers(completion: @escaping ([User]?, Error?) -> Void) {
+        
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil, APICollectionError.databaseError)
+            
+            return
+        }
+        
+        let collection = db!["users"]
+        
+        do {
+            Log.info("Searching for users")
+            let results = try collection.find()
+            
+            var users = [User]()
+            
+            for user in results {
+                if let userId = String(user["_id"]), let username = String(user["username"]), let password = String(user["password"]), let salt = String(user["salt"]), let accountType = String(user["accounttype"]) {
+                    
+                    var emails: [String]?
+                    
+                    if let possibleEmails = Array(user["emails"]) as? [String] {
+                        emails = possibleEmails
+                    }
+                    
+                    let newUser = User(userId: userId, username: username, password: password, salt: salt, accountType: accountType, emails: emails)
+                    
+                    users.append(newUser)
+                    
+                }
+            }
+            
+            completion(users, nil)
+            
+        } catch {
+            Log.warning("could not get users")
+        }
+        
+    }
+}
+
+// Extension on string to verify password
+extension String {
+    func verifyPassword(_ pass: String, _ salt: String) throws -> Bool {
+        
+        let key = PBKDF.deriveKey(fromPassword: pass, salt: salt, prf: .sha512, rounds: 250_000, derivedKeyLength: 64)
+        
+        let hashedPass = CryptoUtils.hexString(from: key)
+        
+        if self == hashedPass {
+            return true
+        } else {
+            return false
+        }
+        
     }
 }

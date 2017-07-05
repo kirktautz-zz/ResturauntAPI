@@ -31,6 +31,8 @@ public final class ResturauntController {
         // middleware for parsing body requests
         router.all("/*", middleware: BodyParser())
         
+        router.post("\(menuItemsPath)", middleware: rest.credentials)
+        
         // get count of all menu items
         router.get("\(menuItemsPath)/count", handler: self.getMenuItemsCount)
         
@@ -83,7 +85,7 @@ public final class ResturauntController {
             }
             
             if let menuItem = menuItem {
-                try? response.status(.OK).send(json: JSON(menuItem.toDict())).end()
+                response.status(.OK).send(json: JSON(menuItem.toDict()))
             }
         }
     }

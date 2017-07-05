@@ -52,14 +52,20 @@
     {
       "package": "Kitura",
       "reason": null,
-      "repositoryURL": "https://github.com/IBM-Swift/Kitura",
+      "repositoryURL": "https://github.com/IBM-Swift/Kitura.git",
       "version": "1.7.6"
     },
     {
       "package": "Kitura-Credentials",
       "reason": null,
-      "repositoryURL": "https://github.com/IBM-Swift/Kitura-Credentials",
+      "repositoryURL": "https://github.com/IBM-Swift/Kitura-Credentials.git",
       "version": "1.7.2"
+    },
+    {
+      "package": "Kitura-CredentialsHTTP",
+      "reason": null,
+      "repositoryURL": "https://github.com/IBM-Swift/Kitura-CredentialsHTTP",
+      "version": "1.8.0"
     },
     {
       "package": "Kitura-Session",

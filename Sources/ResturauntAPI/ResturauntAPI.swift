@@ -1,4 +1,5 @@
 import Foundation
+import Credentials
 
 typealias JSONDictionary = [String: Any]
 
@@ -13,6 +14,8 @@ protocol Item {
 }
 
 public protocol ResturauntAPI {
+    
+    var credentials: Credentials { get }
     
     // MARK: Menu items
     

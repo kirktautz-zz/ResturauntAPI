@@ -55,7 +55,7 @@ extension MenuItem: DictionaryConvertable {
     }
 }
 
-// extension on array to add toDict functionn
+// extension on array to add toDict function
 extension Array where Element: DictionaryConvertable {
     func toDict() -> [JSONDictionary] {
         return self.map { $0.toDict() }
