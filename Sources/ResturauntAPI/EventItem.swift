@@ -43,8 +43,8 @@ extension EventItem: DictionaryConvertable {
         var result = JSONDictionary()
         
         result["id"] = self.id
-        result["name"] = self.name
-        result["eventDate"] = self.eventDate
+        result["eventname"] = self.name
+        result["eventdate"] = self.eventDate
         result["date"] = self.date
         
         return result

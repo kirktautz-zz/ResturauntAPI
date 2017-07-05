@@ -44,22 +44,25 @@ public protocol ResturauntAPI {
     // get count of all menu items
     func countMenuItems(completion: @escaping (Int?, Error?) ->Void)
     
-//    // MARK: - Event items
-//    
-//    // get all events
-//    func getEventItems(completion: @escaping ([EventItem]?, Error?) -> Void)
-//    
-//    // get specific event item
-//    func getEventItem(id: String, completion: @escaping (EventItem?, Error?) ->Void)
-//    
-//    // add event item
-//    func addEvent(eventName: String, eventDate: String, completion: @escaping (EventItem?, Error?) -> Void)
-//    
-//    // edit event item
-//    func editEvent(id: String, eventName: String?, eventDate: String?, completion: @escaping (EventItem?, Error?) -> Void)
-//    
-//    // delete event
-//    func deleteEvent(id: String, completion: @escaping (Error?) -> Void)
+    // MARK: - Event items
+    
+    // get all events
+    func getEventItems(completion: @escaping ([EventItem]?, Error?) -> Void)
+    
+    // get specific event item
+    func getEventItem(id: String, completion: @escaping (EventItem?, Error?) ->Void)
+    
+    // add event item
+    func addEvent(eventName: String, eventDate: String, completion: @escaping (EventItem?, Error?) -> Void)
+    
+    // edit event item
+    func editEvent(id: String, eventName: String?, eventDate: String?, completion: @escaping (EventItem?, Error?) -> Void)
+    
+    // delete event
+    func deleteEvent(id: String, completion: @escaping (Error?) -> Void)
+    
+    // clear events
+    func clearEventItems(completion: (Error?) -> Void)
     
    // MARK: - User
     

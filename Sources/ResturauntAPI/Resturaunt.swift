@@ -78,45 +78,45 @@ public class Resturaunt: ResturauntAPI {
         
         // TODO: - create admin authentication
         
-//        let adminCreds = CredentialsHTTPBasic(verifyPassword: { userId, password, callback in
-//            
-//            // Get all users from database
-//            self.getAllUsers(completion: { (users, error) in
-//                guard error == nil else {
-//                    Log.error("Error getting users")
-//                    return
-//                }
-//                
-//                // unwrap and loop through users
-//                if let users = users {
-//                    
-//                    for user in users {
-//                        if user.username == userId {
-//                            
-//                            // When a name matches, check it's password
-//                            if let result = try? user.password.verifyPassword(password, user.salt) {
-//                                
-//                                // if the password is correct, break the loop
-//                                if result {
-//                                    callback(UserProfile(id: user.userId, displayName: user.username, provider: "Resturaunt"))
-//                                    Log.info("Welcome \(user.username)")
-//                                    
-//                                    break
-//                                } else {
-//                                    Log.warning("Invalid password")
-//                                }
-//                            }
-//                        } else {
-//                            Log.warning("Username not found")
-//                        }
-//                    }
-//                } else {
-//                    Log.error("Could not unwrap data from database")
-//                }
-//            })
-//            
-//            callback(nil)
-//        }, realm: "Users")
+        //        let adminCreds = CredentialsHTTPBasic(verifyPassword: { userId, password, callback in
+        //
+        //            // Get all users from database
+        //            self.getAllUsers(completion: { (users, error) in
+        //                guard error == nil else {
+        //                    Log.error("Error getting users")
+        //                    return
+        //                }
+        //
+        //                // unwrap and loop through users
+        //                if let users = users {
+        //
+        //                    for user in users {
+        //                        if user.username == userId {
+        //
+        //                            // When a name matches, check it's password
+        //                            if let result = try? user.password.verifyPassword(password, user.salt) {
+        //
+        //                                // if the password is correct, break the loop
+        //                                if result {
+        //                                    callback(UserProfile(id: user.userId, displayName: user.username, provider: "Resturaunt"))
+        //                                    Log.info("Welcome \(user.username)")
+        //
+        //                                    break
+        //                                } else {
+        //                                    Log.warning("Invalid password")
+        //                                }
+        //                            }
+        //                        } else {
+        //                            Log.warning("Username not found")
+        //                        }
+        //                    }
+        //                } else {
+        //                    Log.error("Could not unwrap data from database")
+        //                }
+        //            })
+        //
+        //            callback(nil)
+        //        }, realm: "Users")
         
         credentials.register(plugin: basicCreds)
     }
@@ -162,7 +162,7 @@ public class Resturaunt: ResturauntAPI {
             return
         }
         
-        let collection = db!["menu_item"]
+        let collection = db!["menu_items"]
         
         do {
             let recievedItems = try collection.find()
@@ -201,7 +201,7 @@ public class Resturaunt: ResturauntAPI {
             return
         }
         
-        let collection = db!["menu_item"]
+        let collection = db!["menu_items"]
         
         do {
             
@@ -232,7 +232,7 @@ public class Resturaunt: ResturauntAPI {
             return
         }
         
-        let collection = db!["menu_item"]
+        let collection = db!["menu_items"]
         
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -274,7 +274,7 @@ public class Resturaunt: ResturauntAPI {
             return
         }
         
-        let collection = db!["menu_item"]
+        let collection = db!["menu_items"]
         
         do {
             
@@ -331,7 +331,7 @@ public class Resturaunt: ResturauntAPI {
             return
         }
         
-        let collection = db!["menu_item"]
+        let collection = db!["menu_items"]
         
         do {
             let objectId = try ObjectId(id)
@@ -354,7 +354,7 @@ public class Resturaunt: ResturauntAPI {
             return
         }
         
-        let collection = db!["menu_item"]
+        let collection = db!["menu_items"]
         do {
             let docs = try collection.find()
             
@@ -380,7 +380,7 @@ public class Resturaunt: ResturauntAPI {
             return
         }
         
-        let collection = db!["menu_item"]
+        let collection = db!["menu_items"]
         
         let query: Query
         
@@ -423,7 +423,7 @@ public class Resturaunt: ResturauntAPI {
             return
         }
         
-        let collection = db!["menu_item"]
+        let collection = db!["menu_items"]
         
         do {
             let results = try collection.find()
@@ -530,15 +530,141 @@ public class Resturaunt: ResturauntAPI {
             
             
         }
+        
+    }
+    
+    // MARK: Events
+    
+    // get all events
+    public func getEventItems(completion: @escaping ([EventItem]?, Error?) -> Void) {
+        
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            
+            return
+        }
+        
+        let collection = db!["event_items"]
+        
+        do {
+            
+            let retrievedItems = try collection.find()
+            
+            var returnedEvents = [EventItem]()
+            for item in retrievedItems {
+                if let eventName = String(item["eventname"]), let eventDate = String(item["eventdate"]), let eventId = String(item["_id"]), let date = String(item["date"]) {
+                    
+                    let newEvent = EventItem(id: eventId, name: eventName, eventDate: eventDate, date: date)
+                    returnedEvents.append(newEvent)
+                } else {
+                    completion(nil, APICollectionError.parseError)
+                    Log.error("Could not get all items from database")
+                }
+            }
+            Log.info("returning events")
+            completion(returnedEvents, nil)
+            
+        } catch {
+            Log.error("Could not connect to database")
+            completion(nil, APICollectionError.databaseError)
+        }
+        
+    }
+    
+    // get specific event item
+    public func getEventItem(id: String, completion: @escaping (EventItem?, Error?) ->Void) {
+        
+    }
+    
+    // add event item
+    public func addEvent(eventName: String, eventDate: String, completion: @escaping (EventItem?, Error?) -> Void) {
+        
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil, APICollectionError.databaseError)
+            return
+        }
+        
+        guard eventName != "", eventDate != "" else {
+            Log.error("Required fields not filled out")
+            completion(nil, APICollectionError.parseError)
+            return
+        }
+        
+        let collection = db!["event_items"]
+        
+        let formatter = DateFormatter()
+        let formattedDate = formatter.string(from: Date())
+        
+        let eventDoc: Document = [
+            "eventname": eventName,
+            "eventdate" : eventDate,
+            "date": formattedDate
+        ]
+        
+        do {
+            let eventId = try collection.insert(eventDoc)
+            
+            guard let stringId = String(eventId) else {
+                Log.error("Could not convert objectId")
+                completion(nil, APICollectionError.parseError)
+                return
+            }
+            
+            let newEvent = EventItem(id: stringId, name: eventName, eventDate: eventDate, date: formattedDate)
+            
+            completion(newEvent, nil)
+            
+        } catch {
+            Log.error("Could not create event")
+            completion(nil, APICollectionError.databaseError)
+        }
+        
+    }
+    
+    // edit event item
+    public func editEvent(id: String, eventName: String?, eventDate: String?, completion: @escaping (EventItem?, Error?) -> Void) {
+        
+    }
+    
+    // delete event
+    public func deleteEvent(id: String, completion: @escaping (Error?) -> Void) {
+        
+    }
+    
+    // clear all events
+    public func clearEventItems(completion: (Error?) -> Void) {
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(APICollectionError.databaseError)
+            
+            return
+        }
+        
+        let collection = db!["event_items"]
+        do {
+            let docs = try collection.find()
+            
+            for doc in docs {
+                try collection.remove("_id" == doc["_id"])
+            }
+            
+            Log.info("Cleared all documents")
+            completion(nil)
+        } catch {
+            Log.warning("Could not remove documents")
+            completion(APICollectionError.databaseError)
+        }
 
     }
-}
-
-// helper function to hash password
-func hashPassword(from str: String, salt: String) -> String {
-    let key = PBKDF.deriveKey(fromPassword: str, salt: salt, prf: .sha512, rounds: 250_000, derivedKeyLength: 64)
     
-    return CryptoUtils.hexString(from: key)
+    
+    // helper function to hash password
+    func hashPassword(from str: String, salt: String) -> String {
+        let key = PBKDF.deriveKey(fromPassword: str, salt: salt, prf: .sha512, rounds: 250_000, derivedKeyLength: 64)
+        
+        return CryptoUtils.hexString(from: key)
+    }
 }
 
 // Extension on string to verify password
