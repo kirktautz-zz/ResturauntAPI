@@ -31,7 +31,11 @@ public final class ResturauntController {
         // middleware for parsing body requests
         router.all("/*", middleware: BodyParser())
         
+        // middleware to be logged in for posting menu items
         router.post("\(menuItemsPath)", middleware: rest.credentials)
+        
+        // middleware to be logged in for updating menu items
+        router.put("\(menuItemsPath)", middleware: rest.credentials)
         
         // get count of all menu items
         router.get("\(menuItemsPath)/count", handler: self.getMenuItemsCount)
@@ -59,6 +63,8 @@ public final class ResturauntController {
     // POST handler for adding a menu item
     private func addMenuItem(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
+        defer { next() }
+        
         guard let body = request.body else {
             Log.error("Could not find body in request")
             response.status(.badRequest)
@@ -85,7 +91,7 @@ public final class ResturauntController {
             }
             
             if let menuItem = menuItem {
-                response.status(.OK).send(json: JSON(menuItem.toDict()))
+                try? response.status(.OK).send(json: JSON(menuItem.toDict())).end()
             }
         }
     }
