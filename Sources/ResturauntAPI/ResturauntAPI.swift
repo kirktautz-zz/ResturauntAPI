@@ -16,6 +16,7 @@ protocol Item {
 public protocol ResturauntAPI {
     
     var credentials: Credentials { get }
+    var userCredentials: Credentials { get }
     
     // MARK: Menu items
     

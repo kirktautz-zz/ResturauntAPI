@@ -24,6 +24,7 @@ public class Resturaunt: ResturauntAPI {
     
     private let mongoUrl = "mongodb://localhost:27017"
     public let credentials = Credentials()
+    public let userCredentials = Credentials()
     
     // initialize and setup db
     public init() {
