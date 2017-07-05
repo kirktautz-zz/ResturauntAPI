@@ -65,7 +65,7 @@ public protocol ResturauntAPI {
     // get all users
     func getAllUsers(completion: @escaping ([User]?, Error?) -> Void)
     
-    
+    func addUser(username: String, password: String, emails: [String]?, completion: (User?, Error?) -> Void)
     
     
     

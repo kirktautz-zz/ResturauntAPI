@@ -37,6 +37,9 @@ public final class ResturauntController {
         // middleware to be logged in for updating menu items
         router.put("\(menuItemsPath)", middleware: rest.credentials)
         
+        // add a new user path
+        router.post("/signup", handler: self.userSignUp)
+        
         // get count of all menu items
         router.get("\(menuItemsPath)/count", handler: self.getMenuItemsCount)
         
@@ -267,5 +270,42 @@ public final class ResturauntController {
             
             try? response.status(.OK).send(json: JSON(["count" : count])).end()
         }
+    }
+    
+    // Sign up a new user
+    func userSignUp(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        
+        guard let body = request.body else {
+            Log.error("Body not found in request")
+            response.status(.badRequest)
+            return
+        }
+        
+        guard case let .json(json) = body else {
+            Log.error("Invalid JSON specified")
+            response.status(.badRequest)
+            return
+        }
+
+        if let username = json["username"].string, let password = json["password"].string, let emails = json["emails"].arrayObject as? [String] {
+            rest.addUser(username: username, password: password, emails: emails, completion: { (user, error) in
+                
+                guard error == nil else {
+                    Log.error("Invalid JSON supplied in request")
+                    response.status(.badRequest)
+                    return
+                }
+                
+                guard let user = user else {
+                    Log.error("Could not find created user")
+                    response.status(.internalServerError)
+                    return
+                }
+                
+                try? response.status(.OK).send(json: JSON(user.toDict())).end()
+                
+            })
+        }
+        
     }
 }

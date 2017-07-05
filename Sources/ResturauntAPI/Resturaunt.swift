@@ -59,11 +59,16 @@ public class Resturaunt: ResturauntAPI {
                                     Log.info("Welcome \(user.username)")
                                     
                                     break
+                                } else {
+                                    Log.warning("Invalid password")
                                 }
-                                
                             }
+                        } else {
+                            Log.warning("Username not found")
                         }
                     }
+                } else {
+                    Log.error("Could not unwrap data from database")
                 }
             })
             
@@ -411,7 +416,7 @@ public class Resturaunt: ResturauntAPI {
             var users = [User]()
             
             for user in results {
-                if let userId = String(user["_id"]), let username = String(user["username"]), let password = String(user["password"]), let salt = String(user["salt"]), let accountType = String(user["accounttype"]) {
+                if let userId = String(user["_id"]), let username = String(user["username"]), let password = String(user["password"]), let salt = String(user["salt"]), let accountType = String(user["accounttype"]), let createdAt = String(user["createdat"]) {
                     
                     var emails: [String]?
                     
@@ -419,7 +424,7 @@ public class Resturaunt: ResturauntAPI {
                         emails = possibleEmails
                     }
                     
-                    let newUser = User(userId: userId, username: username, password: password, salt: salt, accountType: accountType, emails: emails)
+                    let newUser = User(userId: userId, username: username, password: password, salt: salt, accountType: accountType, emails: emails, createdAt: createdAt)
                     
                     users.append(newUser)
                     
@@ -433,6 +438,64 @@ public class Resturaunt: ResturauntAPI {
         }
         
     }
+    
+    // create a new user
+    public func addUser(username: String, password: String, emails: [String]?, completion: (User?, Error?) -> Void) {
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            
+            return
+        }
+        
+        let collection = db!["users"]
+        
+        var userDoc = Document()
+        
+        if username == "" {
+            Log.warning("Username cannot be blank")
+            completion(nil, APICollectionError.parseError)
+        } else {
+            userDoc["username"] = username
+            
+            let salt = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+            
+            let hashedPass = hashPassword(from: password, salt: salt)
+            userDoc["password"] = hashedPass
+            userDoc["accounttype"] = "client"
+            userDoc["emails"] = emails
+            userDoc["salt"] = salt
+            
+            let formatter = DateFormatter()
+            let date = formatter.string(from: Date())
+            
+            userDoc["createdat"] = date
+            
+            do {
+                let objectId = try collection.insert(userDoc)
+                
+                guard let userId = String(objectId) else {
+                    completion(nil, APICollectionError.databaseError)
+                    return
+                }
+                
+                let newUser = User(userId: userId, username: username, password: hashedPass, salt: salt, accountType: "client", emails: emails, createdAt: date)
+                completion(newUser, nil)
+                
+            } catch {
+                completion(nil, APICollectionError.databaseError)
+            }
+            
+            
+        }
+
+    }
+}
+
+// helper function to hash password
+func hashPassword(from str: String, salt: String) -> String {
+    let key = PBKDF.deriveKey(fromPassword: str, salt: salt, prf: .sha512, rounds: 250_000, derivedKeyLength: 64)
+    
+    return CryptoUtils.hexString(from: key)
 }
 
 // Extension on string to verify password
