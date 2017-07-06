@@ -22,18 +22,22 @@ public struct EventItem: Item {
     // The documents created date
     public let date: String
     
-    public init(id: String, name: String, eventDate: String, date: String) {
+    // The event description
+    public let eventDescription: String
+    
+    public init(id: String, name: String, eventDate: String, date: String, eventDescription: String) {
         self.id = id
         self.name = name
         self.eventDate = eventDate
         self.date = date
+        self.eventDescription = eventDescription
     }
 }
 
 // Make the event item equateble
 extension EventItem: Equatable {
     public static func == (lhs:EventItem, rhs:EventItem) -> Bool {
-        return lhs.id == rhs.id && lhs.name == rhs.name && lhs.eventDate == rhs.eventDate && lhs.date == rhs.date
+        return lhs.id == rhs.id && lhs.name == rhs.name && lhs.eventDate == rhs.eventDate && lhs.date == rhs.date && lhs.eventDescription == rhs.eventDescription
     }
 }
 
@@ -46,6 +50,7 @@ extension EventItem: DictionaryConvertable {
         result["eventname"] = self.name
         result["eventdate"] = self.eventDate
         result["date"] = self.date
+        result["eventdescription"] = self.eventDescription
         
         return result
         

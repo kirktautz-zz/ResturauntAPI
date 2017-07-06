@@ -4,7 +4,7 @@ import XCTest
 class ResturauntAPITests: XCTestCase {
     
     static var allTests = [
-        ("testGetAllMenuItems", testGetAllMenuItems), ("testAddAndGetItem", testAddAndGetItem), ("testEditItem", testEditItem), ("testDeleteItem", testDeleteItem), ("testMenuItemCount", testMenuItemCount), ("testGetSpecificMenuItem", testGetSpecificMenuItem), ("testGetItemByType", testGetItemByType), ("testAddAndGetAllEvents", testAddAndGetAllEvents)
+        ("testGetAllMenuItems", testGetAllMenuItems), ("testAddAndGetItem", testAddAndGetItem), ("testEditItem", testEditItem), ("testDeleteItem", testDeleteItem), ("testMenuItemCount", testMenuItemCount), ("testGetSpecificMenuItem", testGetSpecificMenuItem), ("testGetItemByType", testGetItemByType), ("testAddAndGetAllEvents", testAddAndGetAllEvents), ("testGetSpecificEvent", testGetSpecificEvent), ("testEditEvent", testEditEvent), ("testDeleteEvent", testDeleteEvent)
     ]
     
     var rest: Resturaunt?
@@ -45,7 +45,7 @@ class ResturauntAPITests: XCTestCase {
         
         let addMenuItemExp = expectation(description: "Add a menu item")
         
-        rest.addMenuFoodItem(itemType: "TEST", itemSubType: "TEST", itemName: "TEST", itemPrice: 0, imgUrl: "TEST") { (item, error) in
+        rest.addMenuItem(itemType: "TEST", itemSubType: "TEST", itemName: "TEST", itemPrice: 0, imgUrl: "TEST") { (item, error) in
             guard error == nil else {
                 XCTFail()
                 return
@@ -84,7 +84,7 @@ class ResturauntAPITests: XCTestCase {
         let getAllExpec = expectation(description: "Get all menu items")
         
         
-        rest.addMenuFoodItem(itemType: "TEST", itemSubType: "TEST", itemName: "TEST", itemPrice: 0, imgUrl: "TEST") { (addedItem, error) in
+        rest.addMenuItem(itemType: "TEST", itemSubType: "TEST", itemName: "TEST", itemPrice: 0, imgUrl: "TEST") { (addedItem, error) in
             
             guard let addedItemId = addedItem?.id else {
                 XCTFail()
@@ -121,7 +121,7 @@ class ResturauntAPITests: XCTestCase {
         
         let editMenuItemExp = expectation(description: "Edit a menu item")
         
-        rest.addMenuFoodItem(itemType: "TEST", itemSubType: "TEST", itemName: "TEST", itemPrice: 0, imgUrl: "TEST") { (addedItem, error) in
+        rest.addMenuItem(itemType: "TEST", itemSubType: "TEST", itemName: "TEST", itemPrice: 0, imgUrl: "TEST") { (addedItem, error) in
             guard error == nil else {
                 XCTFail()
                 return
@@ -132,7 +132,7 @@ class ResturauntAPITests: XCTestCase {
                 return
             }
             
-            rest.editMenuFoodItem(id: addedItem.id, itemType: nil, itemSubType: nil, itemName: "UpdatedTest", itemPrice: nil, imgUrl: nil, completion: { (updatedItem, error) in
+            rest.editMenuItem(id: addedItem.id, itemType: nil, itemSubType: nil, itemName: "UpdatedTest", itemPrice: nil, imgUrl: nil, completion: { (updatedItem, error) in
                 guard error == nil else {
                     XCTFail()
                     return
@@ -165,7 +165,7 @@ class ResturauntAPITests: XCTestCase {
         
         let deleteItemExp = expectation(description: "Delete an item")
         
-        rest.addMenuFoodItem(itemType: "TEST", itemSubType: "TEST", itemName: "TEST", itemPrice: 0, imgUrl: "TEST") { (addedItem, error) in
+        rest.addMenuItem(itemType: "TEST", itemSubType: "TEST", itemName: "TEST", itemPrice: 0, imgUrl: "TEST") { (addedItem, error) in
             guard error == nil else {
                 XCTFail()
                 return
@@ -202,7 +202,7 @@ class ResturauntAPITests: XCTestCase {
         let countMenuItemsExp = expectation(description: "Count menu items")
         
         for _ in 1...5 {
-            rest.addMenuFoodItem(itemType: "test", itemSubType: "test", itemName: "test", itemPrice: 0, imgUrl: "test", completion: { (item, error) in
+            rest.addMenuItem(itemType: "test", itemSubType: "test", itemName: "test", itemPrice: 0, imgUrl: "test", completion: { (item, error) in
                 guard error == nil else {
                     XCTFail()
                     return
@@ -233,7 +233,7 @@ class ResturauntAPITests: XCTestCase {
         
         let specificItemExpectation = expectation(description: "Get a specific item")
         
-        rest.addMenuFoodItem(itemType: "TEST", itemSubType: "TEST", itemName: "TEST", itemPrice: 0, imgUrl: "TEST") { (addedItem, error) in
+        rest.addMenuItem(itemType: "TEST", itemSubType: "TEST", itemName: "TEST", itemPrice: 0, imgUrl: "TEST") { (addedItem, error) in
             guard error == nil else {
                 XCTFail()
                 return
@@ -275,7 +275,7 @@ class ResturauntAPITests: XCTestCase {
         let getTypeExp = expectation(description: "Get specific item by type")
         
         for _ in 1...3 {
-            rest.addMenuFoodItem(itemType: "food", itemSubType: "test", itemName: "test", itemPrice: 0, imgUrl: "test", completion: { (item, error) in
+            rest.addMenuItem(itemType: "food", itemSubType: "test", itemName: "test", itemPrice: 0, imgUrl: "test", completion: { (item, error) in
                 guard error == nil else {
                     XCTFail()
                     return
@@ -284,7 +284,7 @@ class ResturauntAPITests: XCTestCase {
         }
         
         for _ in 1...3 {
-            rest.addMenuFoodItem(itemType: "alcohol", itemSubType: "test", itemName: "test", itemPrice: 0, imgUrl: "test", completion: { (item, error) in
+            rest.addMenuItem(itemType: "alcohol", itemSubType: "test", itemName: "test", itemPrice: 0, imgUrl: "test", completion: { (item, error) in
                 guard error == nil else {
                     XCTFail()
                     return
@@ -341,7 +341,7 @@ class ResturauntAPITests: XCTestCase {
         
         let addAndGetExp = expectation(description: "Add an event and get it back with all events")
         
-        rest.addEvent(eventName: "TEST", eventDate: "March 1, 2017 12:00 PM") { (eventItem, error) in
+        rest.addEvent(eventName: "TEST", eventDate: "March 1, 2017 12:00 PM", eventDescription: "TEST") { (eventItem, error) in
             guard error == nil else {
                 XCTFail()
                 return
@@ -366,6 +366,132 @@ class ResturauntAPITests: XCTestCase {
                     }
                 }
             })
+        }
+        
+        waitForExpectations(timeout: 5) { (error) in
+            XCTAssertNil(error)
+        }
+    }
+    
+    // test getting a single event
+    func testGetSpecificEvent() {
+        guard let rest = rest else {
+            XCTFail()
+            return
+        }
+        
+        let getEventExp = expectation(description: "Get a specific event")
+        
+        rest.addEvent(eventName: "TEST", eventDate: "TEST", eventDescription: "TEST") { (addedItem, error) in
+            guard error == nil else {
+                XCTFail()
+                return
+            }
+            
+            if let addedItem = addedItem {
+                
+                rest.getEventItem(id: addedItem.id, completion: { (retrievedItem, error) in
+                    guard error == nil else {
+                        XCTFail()
+                        return
+                    }
+                    
+                    if let retrievedItem = retrievedItem {
+                        
+                        XCTAssertEqual(retrievedItem.id, addedItem.id)
+                        getEventExp.fulfill()
+                    } else {
+                        XCTFail()
+                    }
+                })
+                
+                
+            } else {
+                XCTFail()
+            }
+        }
+        
+        waitForExpectations(timeout: 5) { (error) in
+            XCTAssertNil(error)
+        }
+    }
+    
+    func testEditEvent() {
+        guard let rest = rest else {
+            XCTFail()
+            return
+        }
+        
+        let editExp = expectation(description: "Edit an event")
+        
+        rest.addEvent(eventName: "TEST", eventDate: "TEST", eventDescription: "TEST") { (addEvent, error) in
+            
+            guard error == nil else {
+                XCTFail()
+                return
+            }
+            
+            guard let addEvent = addEvent else {
+                XCTFail()
+                return
+            }
+            
+            rest.editEvent(id: addEvent.id, eventName: "EditedName", eventDate: nil, eventDescription: nil, completion: { (editedItem, error) in
+                guard error == nil else {
+                    XCTFail()
+                    return
+                }
+                
+                rest.getEventItem(id: addEvent.id, completion: { (resultEvent, error) in
+                    guard error == nil else {
+                        XCTFail()
+                        return
+                    }
+                    
+                    guard let resultEvent = resultEvent else {
+                        XCTFail()
+                        return
+                    }
+                    
+                    XCTAssertEqual(resultEvent.name, "EditedName")
+                    editExp.fulfill()
+                })
+            })
+        }
+        
+        waitForExpectations(timeout: 5) { (error) in
+            XCTAssertNil(error)
+        }
+    }
+    
+    func testDeleteEvent() {
+       
+        guard let rest = rest else {
+            XCTFail()
+            return
+        }
+        
+        let deleteEventExp = expectation(description: "Delete an event")
+        
+        rest.addEvent(eventName: "TEST", eventDate: "TEST", eventDescription: "TEST") { (addedItem, error) in
+            
+            guard error == nil else {
+                XCTFail()
+                return
+            }
+            
+            guard let addedItem = addedItem else {
+                XCTFail()
+                return
+            }
+            
+            rest.deleteEvent(id: addedItem.id, completion: { (error) in
+                
+                XCTAssertNil(error)
+                deleteEventExp.fulfill()
+                
+            })
+            
         }
         
         waitForExpectations(timeout: 5) { (error) in

@@ -60,9 +60,16 @@ public final class ResturauntController {
         
         // find items by type path or subtype
         router.get("\(menuItemsPath)/categories/:type/:subtype?", handler: self.getMenuItemByType)
+
+        // get all events
+        router.get("\(eventItemsPath)", handler: self.getAllEventItems)
+        
+        // add an event
+        router.post("\(eventItemsPath)", handler: self.addEvent)
         
     }
     
+    // MARK: - Menu Item Handlers
     // POST handler for adding a menu item
     private func addMenuItem(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
@@ -86,7 +93,7 @@ public final class ResturauntController {
         let itemPrice: Double = json["itemprice"].doubleValue
         let imgUrl: String = json["imgurl"].stringValue
         
-        rest.addMenuFoodItem(itemType: itemType, itemSubType: itemSubType, itemName: itemName, itemPrice: itemPrice, imgUrl: imgUrl) { (menuItem, error) in
+        rest.addMenuItem(itemType: itemType, itemSubType: itemSubType, itemName: itemName, itemPrice: itemPrice, imgUrl: imgUrl) { (menuItem, error) in
             guard error == nil else {
                 Log.error(error!.localizedDescription)
                 try? response.status(.badRequest).end()
@@ -179,7 +186,7 @@ public final class ResturauntController {
         
         defer { next() }
         
-        rest.editMenuFoodItem(id: id, itemType: type, itemSubType: subType, itemName: name, itemPrice: price, imgUrl: imgUrl) { (item, error) in
+        rest.editMenuItem(id: id, itemType: type, itemSubType: subType, itemName: name, itemPrice: price, imgUrl: imgUrl) { (item, error) in
             
             guard error == nil else {
                 Log.error(error!.localizedDescription)
@@ -272,6 +279,7 @@ public final class ResturauntController {
         }
     }
     
+    // MARK: - User Handlers
     // Sign up a new user
     func userSignUp(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
@@ -308,4 +316,61 @@ public final class ResturauntController {
         }
         
     }
+    
+    // MARK: Event handlers
+    private func getAllEventItems(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        
+        rest.getEventItems { (eventItems, error) in
+            guard error == nil else {
+                Log.error("Could not get event items")
+                response.status(.badRequest)
+                return
+            }
+            
+            guard let eventItems = eventItems else {
+                Log.debug("Could not get event items")
+                response.status(.badRequest)
+                return
+            }
+            
+            try? response.status(.OK).send(json: JSON(eventItems.toDict())).end()
+            
+        }
+        
+    }
+    
+    private func addEvent(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        
+        guard let body = request.body else {
+            Log.error("Cannot find body in request")
+            response.status(.badRequest)
+            return
+        }
+        
+        guard case let .json(json) = body else {
+            Log.error("Invalid JSON supplied")
+            response.status(.badRequest)
+            return
+        }
+        
+        if let eventName = json["eventname"].string, let eventDate = json["eventdate"].string, let eventDescription = json["eventdescription"].string {
+            
+            rest.addEvent(eventName: eventName, eventDate: eventDate, eventDescription: eventDescription, completion: { (addedItem, error) in
+                guard error == nil else {
+                    Log.error("Could not add event")
+                    try? response.status(.internalServerError).end()
+                    return
+                }
+                
+                guard let addedItem = addedItem else {
+                    Log.error("Could not add event")
+                    try? response.status(.internalServerError).end()
+                    return
+                }
+                
+                try? response.status(.OK).send(json: JSON(addedItem.toDict())).end()
+            })
+        }
+    }
+    
 }

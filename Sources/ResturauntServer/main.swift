@@ -3,7 +3,6 @@ import Kitura
 import HeliumLogger
 import LoggerAPI
 import ResturauntAPI
-import UserAPI
 
 HeliumLogger.use()
 

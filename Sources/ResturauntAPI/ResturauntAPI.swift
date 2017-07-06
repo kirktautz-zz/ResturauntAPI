@@ -27,10 +27,10 @@ public protocol ResturauntAPI {
     func getMenuItem(id: String, completion: @escaping (MenuItem?, Error?) -> Void)
     
     // Add new menu item
-    func addMenuFoodItem(itemType: String, itemSubType: String, itemName: String, itemPrice: Double, imgUrl: String, completion: @escaping (MenuItem?, Error?) -> Void)
+    func addMenuItem(itemType: String, itemSubType: String, itemName: String, itemPrice: Double, imgUrl: String, completion: @escaping (MenuItem?, Error?) -> Void)
     
     // Edit menu item
-    func editMenuFoodItem(id: String, itemType: String?, itemSubType: String?, itemName: String?, itemPrice: Double?, imgUrl: String?, completion: @escaping (MenuItem?, Error?) -> Void)
+    func editMenuItem(id: String, itemType: String?, itemSubType: String?, itemName: String?, itemPrice: Double?, imgUrl: String?, completion: @escaping (MenuItem?, Error?) -> Void)
     
     // delete menu item
     func deleteMenuItem(id: String, completion: @escaping (Error?) -> Void)
@@ -53,10 +53,10 @@ public protocol ResturauntAPI {
     func getEventItem(id: String, completion: @escaping (EventItem?, Error?) ->Void)
     
     // add event item
-    func addEvent(eventName: String, eventDate: String, completion: @escaping (EventItem?, Error?) -> Void)
+    func addEvent(eventName: String, eventDate: String, eventDescription: String, completion: @escaping (EventItem?, Error?) -> Void)
     
     // edit event item
-    func editEvent(id: String, eventName: String?, eventDate: String?, completion: @escaping (EventItem?, Error?) -> Void)
+    func editEvent(id: String, eventName: String?, eventDate: String?, eventDescription: String?, completion: @escaping (EventItem?, Error?) -> Void)
     
     // delete event
     func deleteEvent(id: String, completion: @escaping (Error?) -> Void)

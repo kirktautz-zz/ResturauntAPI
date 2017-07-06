@@ -150,7 +150,7 @@ public class Resturaunt: ResturauntAPI {
         }
     }
     
-    // MARK: - Protocol methods
+    // MARK: - Menu Items
     
     // get all menu items
     public func getMenuItems(completion: @escaping ([MenuItem]?, Error?) -> Void) {
@@ -223,7 +223,7 @@ public class Resturaunt: ResturauntAPI {
     }
     
     // add new menu item
-    public func addMenuFoodItem(itemType: String, itemSubType: String, itemName: String, itemPrice: Double, imgUrl: String, completion: @escaping (MenuItem?, Error?) -> Void) {
+    public func addMenuItem(itemType: String, itemSubType: String, itemName: String, itemPrice: Double, imgUrl: String, completion: @escaping (MenuItem?, Error?) -> Void) {
         
         guard let db = try? connectToDB(), db != nil else {
             Log.error("Could not connect to database")
@@ -266,7 +266,7 @@ public class Resturaunt: ResturauntAPI {
     }
     
     // edit an existing menu item. If values are nil, the saved data will be used
-    public func editMenuFoodItem(id: String, itemType: String?, itemSubType: String?, itemName: String?, itemPrice: Double?, imgUrl: String?, completion: @escaping (MenuItem?, Error?) -> Void) {
+    public func editMenuItem(id: String, itemType: String?, itemSubType: String?, itemName: String?, itemPrice: Double?, imgUrl: String?, completion: @escaping (MenuItem?, Error?) -> Void) {
         guard let db = try? connectToDB(), db != nil else {
             Log.error("Could not connect to database")
             completion(nil, APICollectionError.databaseError)
@@ -283,6 +283,7 @@ public class Resturaunt: ResturauntAPI {
             
             if let result = try collection.findOne(query) {
                 guard let dbName = String(result["itemname"]), let dbPrice = Double(result["itemprice"]), let dbType = String(result["itemtype"]), let dbSubType = String(result["itemsubtype"]), let dbImgUrl = String(result["imgurl"]) else {
+                    
                     Log.error("Document data is incomplete")
                     completion(nil, APICollectionError.databaseError)
                     return
@@ -438,7 +439,7 @@ public class Resturaunt: ResturauntAPI {
         }
     }
     
-    // MARK: - User mothds
+    // MARK: - User
     
     // get all users
     public func getAllUsers(completion: @escaping ([User]?, Error?) -> Void) {
@@ -552,9 +553,9 @@ public class Resturaunt: ResturauntAPI {
             
             var returnedEvents = [EventItem]()
             for item in retrievedItems {
-                if let eventName = String(item["eventname"]), let eventDate = String(item["eventdate"]), let eventId = String(item["_id"]), let date = String(item["date"]) {
+                if let eventName = String(item["eventname"]), let eventDate = String(item["eventdate"]), let eventId = String(item["_id"]), let date = String(item["date"]), let eventDescription = String(item["eventdescription"]) {
                     
-                    let newEvent = EventItem(id: eventId, name: eventName, eventDate: eventDate, date: date)
+                    let newEvent = EventItem(id: eventId, name: eventName, eventDate: eventDate, date: date, eventDescription: eventDescription)
                     returnedEvents.append(newEvent)
                 } else {
                     completion(nil, APICollectionError.parseError)
@@ -574,10 +575,45 @@ public class Resturaunt: ResturauntAPI {
     // get specific event item
     public func getEventItem(id: String, completion: @escaping (EventItem?, Error?) ->Void) {
         
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil, APICollectionError.databaseError)
+            return
+        }
+        
+        let collection = db!["event_items"]
+        
+        do {
+            
+            let objectId = try ObjectId(id)
+            let query: Query = "_id" == objectId
+            let result = try collection.findOne(query)
+            
+            if let result = result {
+                if let eventName = String(result["eventname"]), let eventDate = String(result["eventdate"]), let date = String(result["date"]), let eventDescription = String(result["eventdescription"]) {
+                    
+                    let newEvent = EventItem(id: id, name: eventName, eventDate: eventDate, date: date, eventDescription: eventDescription)
+                    
+                    completion(newEvent, nil)
+                } else {
+                    Log.error("Could not get event fields")
+                    completion(nil, APICollectionError.parseError)
+                }
+                
+            } else {
+                Log.error("Could not find any events")
+                completion(nil, APICollectionError.databaseError)
+            }
+            
+        } catch {
+            
+        }
+        
+        
     }
     
     // add event item
-    public func addEvent(eventName: String, eventDate: String, completion: @escaping (EventItem?, Error?) -> Void) {
+    public func addEvent(eventName: String, eventDate: String, eventDescription: String, completion: @escaping (EventItem?, Error?) -> Void) {
         
         guard let db = try? connectToDB(), db != nil else {
             Log.error("Could not connect to database")
@@ -585,7 +621,7 @@ public class Resturaunt: ResturauntAPI {
             return
         }
         
-        guard eventName != "", eventDate != "" else {
+        guard eventName != "", eventDate != "", eventDescription != "" else {
             Log.error("Required fields not filled out")
             completion(nil, APICollectionError.parseError)
             return
@@ -594,12 +630,15 @@ public class Resturaunt: ResturauntAPI {
         let collection = db!["event_items"]
         
         let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .medium
         let formattedDate = formatter.string(from: Date())
         
         let eventDoc: Document = [
             "eventname": eventName,
             "eventdate" : eventDate,
-            "date": formattedDate
+            "date": formattedDate,
+            "eventdescription": eventDescription
         ]
         
         do {
@@ -611,7 +650,7 @@ public class Resturaunt: ResturauntAPI {
                 return
             }
             
-            let newEvent = EventItem(id: stringId, name: eventName, eventDate: eventDate, date: formattedDate)
+            let newEvent = EventItem(id: stringId, name: eventName, eventDate: eventDate, date: formattedDate, eventDescription: eventDescription)
             
             completion(newEvent, nil)
             
@@ -623,13 +662,79 @@ public class Resturaunt: ResturauntAPI {
     }
     
     // edit event item
-    public func editEvent(id: String, eventName: String?, eventDate: String?, completion: @escaping (EventItem?, Error?) -> Void) {
+    public func editEvent(id: String, eventName: String?, eventDate: String?, eventDescription: String?, completion: @escaping (EventItem?, Error?) -> Void) {
         
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil, APICollectionError.databaseError)
+            return
+        }
+        
+        let collection = db!["event_items"]
+        
+        do {
+            let objectId = try ObjectId(id)
+            let query: Query = "_id" == objectId
+            let result = try collection.findOne(query)
+            
+            if let result = result {
+                
+                
+                guard let dbName = String(result["eventname"]), let dbEvDate = String(result["eventdate"]), let dbDescription = String(result["eventdescription"]) else {
+                    return
+                }
+                
+                let name = eventName ?? dbName
+                let evDate = eventDate ?? dbEvDate
+                let desc = eventDescription ?? dbDescription
+                
+                let formatter = DateFormatter()
+                formatter.dateStyle = .medium
+                formatter.timeStyle = .medium
+                let formattedDate = formatter.string(from: Date())
+                
+                let newDoc:Document = [
+                    "eventname": name,
+                    "eventdate": evDate,
+                    "date": formattedDate,
+                    "eventdescription": desc
+                ]
+                
+                try collection.update("_id" == objectId, to: newDoc)
+                
+                let updateEvent = EventItem(id: id, name: name, eventDate: evDate, date: formattedDate, eventDescription: desc)
+                completion(updateEvent, nil)
+                
+            } else {
+                completion(nil, APICollectionError.databaseError)
+                Log.error("Event not found")
+            }
+            
+        } catch {
+            Log.error("Communicatiosn error")
+        }
+ 
     }
     
     // delete event
     public func deleteEvent(id: String, completion: @escaping (Error?) -> Void) {
         
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(APICollectionError.databaseError)
+            return
+        }
+        
+        let collection = db!["event_items"]
+        
+        do {
+            let objectId = try ObjectId(id)
+            try collection.remove("_id" == objectId)
+            completion(nil)
+     
+        } catch {
+            completion(APICollectionError.databaseError)
+        }
     }
     
     // clear all events
@@ -655,7 +760,7 @@ public class Resturaunt: ResturauntAPI {
             Log.warning("Could not remove documents")
             completion(APICollectionError.databaseError)
         }
-
+        
     }
     
     
