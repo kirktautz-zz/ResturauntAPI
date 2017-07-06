@@ -67,6 +67,15 @@ public final class ResturauntController {
         // add an event
         router.post("\(eventItemsPath)", handler: self.addEvent)
         
+        // get event 
+        router.get("\(eventItemsPath)/:id", handler: self.getEvent)
+        
+        // update an event
+        router.put("\(eventItemsPath)/:id", handler: self.updateEvent)
+        
+        // delete an event
+        router.delete("\(eventItemsPath)/:id",handler: self.deleteEvent)
+        
     }
     
     // MARK: - Menu Item Handlers
@@ -283,6 +292,8 @@ public final class ResturauntController {
     // Sign up a new user
     func userSignUp(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
+        defer { next() }
+        
         guard let body = request.body else {
             Log.error("Body not found in request")
             response.status(.badRequest)
@@ -320,6 +331,8 @@ public final class ResturauntController {
     // MARK: Event handlers
     private func getAllEventItems(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
+        defer { next() }
+        
         rest.getEventItems { (eventItems, error) in
             guard error == nil else {
                 Log.error("Could not get event items")
@@ -340,6 +353,8 @@ public final class ResturauntController {
     }
     
     private func addEvent(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        
+        defer { next() }
         
         guard let body = request.body else {
             Log.error("Cannot find body in request")
@@ -373,4 +388,91 @@ public final class ResturauntController {
         }
     }
     
+    private func getEvent(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+       
+        defer { next() }
+        
+        guard let id = request.parameters["id"] else {
+            Log.error("Missing id in request")
+            try? response.status(.badRequest).end()
+            return
+        }
+        
+        rest.getEventItem(id: id) { (eventItem, error) in
+            guard error == nil else {
+                Log.error("Could not get item")
+                try? response.status(.internalServerError).end()
+                return
+            }
+            
+            guard let eventItem = eventItem else {
+                Log.error("Could not get item")
+                response.status(.internalServerError)
+                return
+            }
+            
+            try? response.status(.OK).send(json: JSON(eventItem.toDict())).end()
+            
+        }
+    }
+    
+    private func updateEvent(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        
+        guard let id = request.parameters["id"] else {
+            Log.warning("Could not find id in request")
+            response.status(.badRequest)
+            return
+        }
+        
+        guard let body = request.body else {
+            Log.warning("Could not find body in request")
+            response.status(.badRequest)
+            return
+        }
+        
+        guard case let .json(json) = body else {
+            Log.warning("Invalid JSON supplied")
+            response.status(.badRequest)
+            return
+        }
+        
+        let eventName = json["eventname"].stringValue == "" ? nil : json["eventname"].stringValue
+        let eventDate = json["eventdate"].stringValue == "" ? nil : json["eventdate"].stringValue
+        let eventDesc = json["eventdescription"].stringValue == "" ? nil : json["eventdescription"].stringValue
+        
+        rest.editEvent(id: id, eventName: eventName, eventDate: eventDate, eventDescription: eventDesc) { (editedItem, error) in
+            guard error == nil else {
+                Log.error(error!.localizedDescription)
+                try? response.status(.internalServerError).end()
+                return
+            }
+            
+            guard let editedItem = editedItem else {
+                Log.error(error!.localizedDescription)
+                try? response.status(.internalServerError).end()
+                return
+            }
+            
+            try? response.status(.OK).send(json: JSON(editedItem.toDict())).end()
+        }
+    }
+    
+    private func deleteEvent(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        
+        guard let id = request.parameters["id"] else {
+            Log.warning("Could not find id in request")
+            response.status(.badRequest)
+            return
+        }
+        
+        rest.deleteEvent(id: id) { (error) in
+            guard error == nil else {
+                Log.error(error!.localizedDescription)
+                try? response.status(.internalServerError).end()
+                return
+            }
+            
+            try? response.status(.OK).send("event deleted successfully").end()
+        }
+    }
 }
