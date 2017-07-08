@@ -14,11 +14,11 @@ public struct ReviewItem {
     public let userId: String
     public let reviewTitle: String
     public let reviewContent: String
-    public let postDate: String
+    public let postDate: Date
     public let rating: Int
     public let parentItem: String
     
-    public init(reviewId: String, userId: String, reviewTitle: String, reviewContent: String, postDate: String, rating: Int, parentItem: String) {
+    public init(reviewId: String, userId: String, reviewTitle: String, reviewContent: String, postDate: Date, rating: Int, parentItem: String) {
         
         self.reviewId = reviewId
         self.userId = userId

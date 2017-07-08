@@ -68,13 +68,13 @@ public protocol ResturauntAPI {
     
     // MARK: - Reviews
     // get all reviews for item
-    func getAllReviewsForItem(itemId: String, completion: @escaping ([ReviewItem]?, Error?) -> Void)
+    func getAllReviewsForItem(parentId: String, completion: @escaping ([ReviewItem]?, Error?) -> Void)
     
     // get specific review
     func getReviewById(id: String, completion: @escaping (ReviewItem?, Error?) -> Void)
     
     // add review
-    func addReview(reviewTitle: String, reviewContent: String, rating: Int, completion: @escaping (ReviewItem?, Error?) -> Void)
+    func addReview(parentId: String, userId: String, reviewTitle: String, reviewContent: String, rating: Int, completion: @escaping (ReviewItem?, Error?) -> Void)
     
     // edit review
     func editReview(id: String, reviewTitle: String?, reviewContent: String?, rating: String?, completion: @escaping (ReviewItem?, Error) -> Void)

@@ -27,7 +27,7 @@ public class Resturaunt: ResturauntAPI {
     
     // initialize and setup db
     public init() {
-        setupAuth()
+//        setupAuth()
         setupDB()
     }
     
@@ -639,17 +639,90 @@ public class Resturaunt: ResturauntAPI {
     
     // MARK: - Reviews
     // get all reviews for item
-    public func getAllReviewsForItem(itemId: String, completion: @escaping ([ReviewItem]?, Error?) -> Void) {
+    public func getAllReviewsForItem(parentId: String, completion: @escaping ([ReviewItem]?, Error?) -> Void) {
+        
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil ,APICollectionError.databaseError)
+            return
+        }
+        
+        let collection = db!["reviews"]
+        
+        let query: Query = ["parentid" : parentId]
+        let sort: Sort = ["date": .descending]
+        do {
+            
+            let results = try collection.find(query, sortedBy: sort)
+            
+            var reviewItems = [ReviewItem]()
+            
+            for result in results {
+                if let reviewId = String(result["_id"]), let reviewTitle = String(result["reviewtitle"]), let reviewContent = String(result["reviewcontent"]), let postDate = Date(result["date"]), let rating = Int(result["rating"]), let userId = String(result["userid"]) {
+                    
+                    let newReview = ReviewItem(reviewId: reviewId, userId: userId, reviewTitle: reviewTitle, reviewContent: reviewContent, postDate: postDate, rating: rating, parentItem: parentId)
+                    
+                    reviewItems.append(newReview)
+                } else {
+                    completion(nil, APICollectionError.parseError)
+                    Log.error("Could not get review details")
+                }
+            }
+            
+            completion(reviewItems, nil)
+            
+        } catch {
+            completion(nil, APICollectionError.databaseError)
+            Log.error("Could not find reviews")
+        }
+    }
+    
+    // add review
+    public func addReview(parentId: String, userId: String, reviewTitle: String, reviewContent: String, rating: Int, completion: @escaping (ReviewItem?, Error?) -> Void) {
+        
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil ,APICollectionError.databaseError)
+            return
+        }
+        
+        let collection = db!["reviews"]
+        
+        let date = Date()
+        
+        let doc: Document = [
+            "parentid": parentId,
+            "userid": userId,
+            "reviewtitle" : reviewTitle,
+            "reviewcontent": reviewContent,
+            "rating": rating,
+            "date": date
+        ]
+        
+        do {
+            
+            let returnedId = try collection.insert(doc)
+            
+            guard let reviewId = String(returnedId) else {
+                Log.error("Could not get id")
+                completion(nil, APICollectionError.parseError)
+                return
+            }
+            
+            let newReview = ReviewItem(reviewId: reviewId, userId: userId, reviewTitle: reviewTitle, reviewContent: reviewContent, postDate: date, rating: rating, parentItem: parentId)
+            
+            completion(newReview, nil)
+            
+        } catch {
+            completion(nil, APICollectionError.databaseError)
+            Log.error("Could not add document")
+        }
+        
         
     }
     
     // get specific review
     public func getReviewById(id: String, completion: @escaping (ReviewItem?, Error?) -> Void) {
-        
-    }
-    
-    // add review
-    public func addReview(reviewTitle: String, reviewContent: String, rating: Int, completion: @escaping (ReviewItem?, Error?) -> Void) {
         
     }
     
@@ -665,7 +738,26 @@ public class Resturaunt: ResturauntAPI {
     
     // clear reviews
     public func clearReviews(completion: @escaping (Error?) -> Void) {
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil)
+            return
+        }
         
+        let collection = db!["reviews"]
+        
+        do {
+            let results = try collection.find()
+            
+            for result in results {
+                try collection.remove("_id" == result["_id"])
+            }
+            
+            completion(nil)
+        } catch {
+            Log.error("Could not delete documents")
+            completion(APICollectionError.databaseError)
+        }
     }
     
 }

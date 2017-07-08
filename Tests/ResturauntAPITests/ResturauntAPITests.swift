@@ -4,7 +4,7 @@ import XCTest
 class ResturauntAPITests: XCTestCase {
     
     static var allTests = [
-        ("testGetAllMenuItems", testGetAllMenuItems), ("testAddAndGetItem", testAddAndGetItem), ("testEditItem", testEditItem), ("testDeleteItem", testDeleteItem), ("testMenuItemCount", testMenuItemCount), ("testGetSpecificMenuItem", testGetSpecificMenuItem), ("testGetItemByType", testGetItemByType), ("testAddAndGetAllEvents", testAddAndGetAllEvents), ("testGetSpecificEvent", testGetSpecificEvent), ("testEditEvent", testEditEvent), ("testDeleteEvent", testDeleteEvent), ("testCountEvents", testCountEvents)
+        ("testGetAllMenuItems", testGetAllMenuItems), ("testAddAndGetItem", testAddAndGetItem), ("testEditItem", testEditItem), ("testDeleteItem", testDeleteItem), ("testMenuItemCount", testMenuItemCount), ("testGetSpecificMenuItem", testGetSpecificMenuItem), ("testGetItemByType", testGetItemByType), ("testAddAndGetAllEvents", testAddAndGetAllEvents), ("testGetSpecificEvent", testGetSpecificEvent), ("testEditEvent", testEditEvent), ("testDeleteEvent", testDeleteEvent), ("testCountEvents", testCountEvents), ("testAddAndGetReviews", testAddAndGetReviews)
     ]
     
     var rest: Resturaunt?
@@ -28,6 +28,13 @@ class ResturauntAPITests: XCTestCase {
         }
         
         rest.clearEventItems { (error) in
+            guard error == nil else {
+                XCTFail()
+                return
+            }
+        }
+        
+        rest.clearReviews { (error) in
             guard error == nil else {
                 XCTFail()
                 return
@@ -523,6 +530,53 @@ class ResturauntAPITests: XCTestCase {
             countEventsExp.fulfill()
         }
         
+        waitForExpectations(timeout: 5) { (error) in
+            XCTAssertNil(error)
+        }
+    }
+    
+    // test add and get reviews
+    func testAddAndGetReviews() {
+        
+        guard let rest = rest else {
+            XCTFail()
+            return
+        }
+        
+        let addAndGetReviewsExp = expectation(description: "Add reviews and get them back")
+        
+        var reviewIds = [String]()
+        
+        for _ in 1...5 {
+            rest.addReview(parentId: "1", userId: "123", reviewTitle: "TEST", reviewContent: "TEST", rating: 5, completion: { (item, error) in
+                guard error == nil else {
+                    XCTFail()
+                    return
+                }
+                
+                guard let review = item else {
+                    XCTFail()
+                    return
+                }
+                
+                reviewIds.append(review.reviewId)
+            })
+        }
+        
+        rest.getAllReviewsForItem(parentId: "1") { (reviews, error) in
+            guard error == nil else {
+                XCTFail()
+                return
+            }
+            
+            guard let reviews = reviews else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssertEqual(reviewIds.count, reviews.count)
+            addAndGetReviewsExp.fulfill()
+        }
         waitForExpectations(timeout: 5) { (error) in
             XCTAssertNil(error)
         }
