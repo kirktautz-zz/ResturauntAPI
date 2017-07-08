@@ -8,10 +8,22 @@
       "version": "5.1.4"
     },
     {
+      "package": "Bits",
+      "reason": null,
+      "repositoryURL": "https://github.com/vapor/bits.git",
+      "version": "1.0.0"
+    },
+    {
       "package": "CCurl",
       "reason": null,
       "repositoryURL": "https://github.com/IBM-Swift/CCurl.git",
       "version": "0.4.0"
+    },
+    {
+      "package": "CTLS",
+      "reason": null,
+      "repositoryURL": "https://github.com/vapor/ctls.git",
+      "version": "1.0.0"
     },
     {
       "package": "Cheetah",
@@ -26,6 +38,18 @@
       "version": "0.1.4"
     },
     {
+      "package": "Core",
+      "reason": null,
+      "repositoryURL": "https://github.com/vapor/core.git",
+      "version": "2.0.2"
+    },
+    {
+      "package": "Crypto",
+      "reason": null,
+      "repositoryURL": "https://github.com/vapor/crypto.git",
+      "version": "2.0.0"
+    },
+    {
       "package": "CryptoSwift",
       "reason": null,
       "repositoryURL": "https://github.com/krzyzanowskim/CryptoSwift.git",
@@ -35,13 +59,37 @@
       "package": "Cryptor",
       "reason": null,
       "repositoryURL": "https://github.com/IBM-Swift/BlueCryptor.git",
-      "version": "0.8.14"
+      "version": "0.8.15"
+    },
+    {
+      "package": "Debugging",
+      "reason": null,
+      "repositoryURL": "https://github.com/vapor/debugging.git",
+      "version": "1.0.0"
     },
     {
       "package": "HeliumLogger",
       "reason": null,
-      "repositoryURL": "https://github.com/IBM-Swift/HeliumLogger",
+      "repositoryURL": "https://github.com/IBM-Swift/HeliumLogger.git",
       "version": "1.7.0"
+    },
+    {
+      "package": "JSON",
+      "reason": null,
+      "repositoryURL": "https://github.com/vapor/json.git",
+      "version": "2.0.2"
+    },
+    {
+      "package": "JWT",
+      "reason": null,
+      "repositoryURL": "https://github.com/vapor/jwt",
+      "version": "2.1.1"
+    },
+    {
+      "package": "KTD-Kitura-CredentialsJWT",
+      "reason": null,
+      "repositoryURL": "https://github.com/kirktautz/KTD-Kitura-CredentialsJWT.git",
+      "version": "1.0.0"
     },
     {
       "package": "KittenCore",
@@ -62,12 +110,6 @@
       "version": "1.7.2"
     },
     {
-      "package": "Kitura-CredentialsHTTP",
-      "reason": null,
-      "repositoryURL": "https://github.com/IBM-Swift/Kitura-CredentialsHTTP",
-      "version": "1.8.0"
-    },
-    {
       "package": "Kitura-Session",
       "reason": null,
       "repositoryURL": "https://github.com/IBM-Swift/Kitura-Session.git",
@@ -83,7 +125,7 @@
       "package": "Kitura-net",
       "reason": null,
       "repositoryURL": "https://github.com/IBM-Swift/Kitura-net.git",
-      "version": "1.7.12"
+      "version": "1.7.13"
     },
     {
       "package": "LoggerAPI",
@@ -94,14 +136,26 @@
     {
       "package": "MongoKitten",
       "reason": null,
-      "repositoryURL": "https://github.com/OpenKitten/MongoKitten",
+      "repositoryURL": "https://github.com/OpenKitten/MongoKitten.git",
       "version": "4.0.11"
+    },
+    {
+      "package": "Node",
+      "reason": null,
+      "repositoryURL": "https://github.com/vapor/node.git",
+      "version": "2.0.3"
+    },
+    {
+      "package": "Random",
+      "reason": null,
+      "repositoryURL": "https://github.com/vapor/random.git",
+      "version": "1.1.1"
     },
     {
       "package": "SSLService",
       "reason": null,
       "repositoryURL": "https://github.com/IBM-Swift/BlueSSLService.git",
-      "version": "0.12.44"
+      "version": "0.12.45"
     },
     {
       "package": "Schrodinger",
@@ -113,7 +167,7 @@
       "package": "Socket",
       "reason": null,
       "repositoryURL": "https://github.com/IBM-Swift/BlueSocket.git",
-      "version": "0.12.55"
+      "version": "0.12.56"
     },
     {
       "package": "SwiftyJSON",

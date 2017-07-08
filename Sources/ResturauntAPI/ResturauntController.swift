@@ -31,6 +31,9 @@ public final class ResturauntController {
         // middleware for parsing body requests
         router.all("/*", middleware: BodyParser())
         
+        // add JWT authentication on all post requests
+        router.post("/*", middleware: rest.jwtCredentials)
+        
         // get count of all menu items
         router.get("\(menuItemsPath)/count", handler: self.getMenuItemsCount)
         
@@ -55,6 +58,9 @@ public final class ResturauntController {
         // get all events
         router.get("\(eventItemsPath)", handler: self.getAllEventItems)
         
+        // count all events
+        router.get("\(eventItemsPath)", handler: self.countItems)
+        
         // add an event
         router.post("\(eventItemsPath)", handler: self.addEvent)
         
@@ -74,6 +80,20 @@ public final class ResturauntController {
     private func addMenuItem(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
         defer { next() }
+        
+        guard let userProfile = request.userProfile else {
+            Log.error("You are not signed in")
+            response.status(.unauthorized)
+            return
+        }
+        
+        guard let accountType = userProfile.extendedProperties["user_type"] as? String else {
+            Log.error("Could not verify account type")
+            response.status(.internalServerError)
+            return
+        }
+        
+        if accountType == "admin" {
         
         guard let body = request.body else {
             Log.error("Could not find body in request")
@@ -103,6 +123,11 @@ public final class ResturauntController {
             if let menuItem = menuItem {
                 try? response.status(.OK).send(json: JSON(menuItem.toDict())).end()
             }
+        }
+            
+        } else {
+            Log.error("You are not authorized to create a menu item")
+            try? response.status(.unauthorized).end()
         }
     }
     
@@ -160,6 +185,20 @@ public final class ResturauntController {
     // Editing a menu item
     private func editMenuItem(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
+        guard let userProfile = request.userProfile else {
+            Log.error("You are not signed in")
+            response.status(.unauthorized)
+            return
+        }
+        
+        guard let accountType = userProfile.extendedProperties["accounttype"] as? String else {
+            Log.error("Could not verify account type")
+            response.status(.internalServerError)
+            return
+        }
+        
+        if accountType == "admin" {
+        
         guard let id = request.parameters["id"] else {
             Log.error("ID not specified in request")
             response.status(.badRequest)
@@ -205,6 +244,11 @@ public final class ResturauntController {
                 Log.error("Communications error")
             }
             
+        }
+            
+        } else {
+            Log.error("You are not authorized to create an event")
+            try? response.status(.unauthorized).end()
         }
         
     }
@@ -407,6 +451,21 @@ public final class ResturauntController {
             
             try? response.status(.OK).send(json: JSON(editedItem.toDict())).end()
         }
+    }
+    
+    // count all event items
+    private func countItems(request: RouterRequest, respose: RouterResponse, next: () -> Void) {
+        
+        rest.countEventItems { (count, error) in
+            guard error == nil else {
+                Log.error("Could not get count")
+                respose.status(.internalServerError)
+                return
+            }
+            
+            try? respose.status(.OK).send(json: JSON(["count":count])).end()
+        }
+        
     }
     
     private func deleteEvent(request: RouterRequest, response: RouterResponse, next: () -> Void) {

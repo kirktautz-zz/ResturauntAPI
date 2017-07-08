@@ -11,8 +11,8 @@ import SwiftyJSON
 import LoggerAPI
 import MongoKitten
 import Credentials
-import CredentialsHTTP
 import Cryptor
+import KTD_Kitura_CredentialsJWT
 
 public enum APICollectionError: Error {
     case parseError
@@ -23,12 +23,47 @@ public enum APICollectionError: Error {
 public class Resturaunt: ResturauntAPI {
     
     private let mongoUrl = "mongodb://localhost:27017"
-    public let credentials = Credentials()
-    public let userCredentials = Credentials()
+    public let jwtCredentials = Credentials()
     
     // initialize and setup db
     public init() {
+        setupAuth()
         setupDB()
+    }
+    
+    // setup auth
+    private func setupAuth() {
+        
+        guard let file = retrieveSecrets(), let secret = file["JWT_Secret"] else {
+            Log.error("Could not get secret")
+            return
+        }
+        
+        let jwtCreds =  KTDCredentialsJWT(secretKey: secret)
+        
+        self.jwtCredentials.register(plugin: jwtCreds)
+        
+        
+    }
+    
+    private func retrieveSecrets() -> [String: String]? {
+        
+        let plistPath = FileManager().currentDirectoryPath + "/SecretsList.plist"
+        var format = PropertyListSerialization.PropertyListFormat.binary
+        let data = FileManager().contents(atPath: plistPath)
+        
+        guard let plist = try? PropertyListSerialization.propertyList(from: data!, options: .mutableContainersAndLeaves, format: &format)  else {
+            
+            Log.error("Could not get secrets file")
+            return nil
+        }
+        
+        guard let plistData = plist as? [String: String] else {
+            Log.error("Could not convert plist to dictionary")
+            return nil
+        }
+        
+        return plistData
     }
     
     // Check connection to MongoDB is successful
@@ -526,7 +561,7 @@ public class Resturaunt: ResturauntAPI {
         } catch {
             Log.error("Communicatiosn error")
         }
- 
+        
     }
     
     // delete event
@@ -544,9 +579,35 @@ public class Resturaunt: ResturauntAPI {
             let objectId = try ObjectId(id)
             try collection.remove("_id" == objectId)
             completion(nil)
-     
+            
         } catch {
             completion(APICollectionError.databaseError)
+        }
+    }
+    
+    // count all events
+    public func countEventItems(completion: @escaping (Int?, Error?) -> Void) {
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil, APICollectionError.databaseError)
+            return
+        }
+        
+        let collection = db!["event_items"]
+        
+        do{
+            let results = try collection.findOne()
+            if let count = results?.count {
+                completion(count, nil)
+                
+            } else {
+                Log.error("Could not get event items")
+                completion(nil, APICollectionError.databaseError)
+            }
+            
+        } catch {
+            Log.error("Could not get event items")
+            completion(nil, APICollectionError.databaseError)
         }
     }
     
@@ -576,28 +637,5 @@ public class Resturaunt: ResturauntAPI {
         
     }
     
-    
-    // helper function to hash password
-    func hashPassword(from str: String, salt: String) -> String {
-        let key = PBKDF.deriveKey(fromPassword: str, salt: salt, prf: .sha512, rounds: 250_000, derivedKeyLength: 64)
-        
-        return CryptoUtils.hexString(from: key)
-    }
 }
 
-// Extension on string to verify password
-extension String {
-    func verifyPassword(_ pass: String, _ salt: String) throws -> Bool {
-        
-        let key = PBKDF.deriveKey(fromPassword: pass, salt: salt, prf: .sha512, rounds: 250_000, derivedKeyLength: 64)
-        
-        let hashedPass = CryptoUtils.hexString(from: key)
-        
-        if self == hashedPass {
-            return true
-        } else {
-            return false
-        }
-        
-    }
-}

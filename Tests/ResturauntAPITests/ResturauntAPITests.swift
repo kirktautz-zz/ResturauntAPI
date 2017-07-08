@@ -4,7 +4,7 @@ import XCTest
 class ResturauntAPITests: XCTestCase {
     
     static var allTests = [
-        ("testGetAllMenuItems", testGetAllMenuItems), ("testAddAndGetItem", testAddAndGetItem), ("testEditItem", testEditItem), ("testDeleteItem", testDeleteItem), ("testMenuItemCount", testMenuItemCount), ("testGetSpecificMenuItem", testGetSpecificMenuItem), ("testGetItemByType", testGetItemByType), ("testAddAndGetAllEvents", testAddAndGetAllEvents), ("testGetSpecificEvent", testGetSpecificEvent), ("testEditEvent", testEditEvent), ("testDeleteEvent", testDeleteEvent)
+        ("testGetAllMenuItems", testGetAllMenuItems), ("testAddAndGetItem", testAddAndGetItem), ("testEditItem", testEditItem), ("testDeleteItem", testDeleteItem), ("testMenuItemCount", testMenuItemCount), ("testGetSpecificMenuItem", testGetSpecificMenuItem), ("testGetItemByType", testGetItemByType), ("testAddAndGetAllEvents", testAddAndGetAllEvents), ("testGetSpecificEvent", testGetSpecificEvent), ("testEditEvent", testEditEvent), ("testDeleteEvent", testDeleteEvent), ("testCountEvents", testCountEvents)
     ]
     
     var rest: Resturaunt?
@@ -492,6 +492,35 @@ class ResturauntAPITests: XCTestCase {
                 
             })
             
+        }
+        
+        waitForExpectations(timeout: 5) { (error) in
+            XCTAssertNil(error)
+        }
+    }
+    
+    func testCountEvents() {
+        guard let rest = rest else {
+            XCTFail()
+            return
+        }
+        
+        let countEventsExp = expectation(description: "Count of all events")
+        
+        for _ in 1...5 {
+            rest.addEvent(eventName: "TEST", eventDate: "TEST", eventDescription: "TEST", completion: { (event, error) in
+                // added 5 events to count
+            })
+        }
+        
+        rest.countEventItems { (count, error) in
+            guard error == nil else {
+                XCTFail()
+                return
+            }
+            
+            XCTAssertEqual(count, 5)
+            countEventsExp.fulfill()
         }
         
         waitForExpectations(timeout: 5) { (error) in

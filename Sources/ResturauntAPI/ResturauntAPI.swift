@@ -15,8 +15,7 @@ protocol Item {
 
 public protocol ResturauntAPI {
     
-    var credentials: Credentials { get }
-    var userCredentials: Credentials { get }
+    var jwtCredentials: Credentials { get }
     
     // MARK: Menu items
     
@@ -60,6 +59,9 @@ public protocol ResturauntAPI {
     
     // delete event
     func deleteEvent(id: String, completion: @escaping (Error?) -> Void)
+    
+    // count events
+    func countEventItems(completion: @escaping (Int?, Error?) -> Void)
     
     // clear events
     func clearEventItems(completion: (Error?) -> Void)
