@@ -65,4 +65,23 @@ public protocol ResturauntAPI {
     
     // clear events
     func clearEventItems(completion: (Error?) -> Void)
+    
+    // MARK: - Reviews
+    // get all reviews for item
+    func getAllReviewsForItem(itemId: String, completion: @escaping ([ReviewItem]?, Error?) -> Void)
+    
+    // get specific review
+    func getReviewById(id: String, completion: @escaping (ReviewItem?, Error?) -> Void)
+    
+    // add review
+    func addReview(reviewTitle: String, reviewContent: String, rating: Int, completion: @escaping (ReviewItem?, Error?) -> Void)
+    
+    // edit review
+    func editReview(id: String, reviewTitle: String?, reviewContent: String?, rating: String?, completion: @escaping (ReviewItem?, Error) -> Void)
+    
+    // count review
+    func countReviews(completion: @escaping (Int?, Error?) -> Void)
+    
+    // clear reviews
+    func clearReviews(completion: @escaping (Error?) -> Void)
 }

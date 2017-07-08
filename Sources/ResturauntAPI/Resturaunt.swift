@@ -637,5 +637,36 @@ public class Resturaunt: ResturauntAPI {
         
     }
     
+    // MARK: - Reviews
+    // get all reviews for item
+    public func getAllReviewsForItem(itemId: String, completion: @escaping ([ReviewItem]?, Error?) -> Void) {
+        
+    }
+    
+    // get specific review
+    public func getReviewById(id: String, completion: @escaping (ReviewItem?, Error?) -> Void) {
+        
+    }
+    
+    // add review
+    public func addReview(reviewTitle: String, reviewContent: String, rating: Int, completion: @escaping (ReviewItem?, Error?) -> Void) {
+        
+    }
+    
+    // edit review
+    public func editReview(id: String, reviewTitle: String?, reviewContent: String?, rating: String?, completion: @escaping (ReviewItem?, Error) -> Void) {
+        
+    }
+    
+    // count review
+    public func countReviews(completion: @escaping (Int?, Error?) -> Void) {
+        
+    }
+    
+    // clear reviews
+    public func clearReviews(completion: @escaping (Error?) -> Void) {
+        
+    }
+    
 }
 

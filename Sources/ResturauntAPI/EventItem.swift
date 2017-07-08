@@ -34,7 +34,7 @@ public struct EventItem: Item {
     }
 }
 
-// Make the event item equateble
+// Make the event item equatable
 extension EventItem: Equatable {
     public static func == (lhs:EventItem, rhs:EventItem) -> Bool {
         return lhs.id == rhs.id && lhs.name == rhs.name && lhs.eventDate == rhs.eventDate && lhs.date == rhs.date && lhs.eventDescription == rhs.eventDescription
