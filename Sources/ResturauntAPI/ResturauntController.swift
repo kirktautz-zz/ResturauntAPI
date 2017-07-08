@@ -54,7 +54,7 @@ public final class ResturauntController {
         
         // find items by type path or subtype
         router.get("\(menuItemsPath)/categories/:type/:subtype?", handler: self.getMenuItemByType)
-
+        
         // get all events
         router.get("\(eventItemsPath)", handler: self.getAllEventItems)
         
@@ -64,7 +64,7 @@ public final class ResturauntController {
         // add an event
         router.post("\(eventItemsPath)", handler: self.addEvent)
         
-        // get event 
+        // get event
         router.get("\(eventItemsPath)/:id", handler: self.getEvent)
         
         // update an event
@@ -94,36 +94,36 @@ public final class ResturauntController {
         }
         
         if accountType == "admin" {
-        
-        guard let body = request.body else {
-            Log.error("Could not find body in request")
-            response.status(.badRequest)
-            return
-        }
-        
-        guard case let .json(json) = body else {
-            Log.error("Invalid JSON supplied")
-            response.status(.badRequest)
-            return
-        }
-        
-        let itemType: String = json["itemtype"].stringValue
-        let itemSubType: String = json["itemsubtype"].stringValue
-        let itemName: String = json["itemname"].stringValue
-        let itemPrice: Double = json["itemprice"].doubleValue
-        let imgUrl: String = json["imgurl"].stringValue
-        
-        rest.addMenuItem(itemType: itemType, itemSubType: itemSubType, itemName: itemName, itemPrice: itemPrice, imgUrl: imgUrl) { (menuItem, error) in
-            guard error == nil else {
-                Log.error(error!.localizedDescription)
-                try? response.status(.badRequest).end()
+            
+            guard let body = request.body else {
+                Log.error("Could not find body in request")
+                response.status(.badRequest)
                 return
             }
             
-            if let menuItem = menuItem {
-                try? response.status(.OK).send(json: JSON(menuItem.toDict())).end()
+            guard case let .json(json) = body else {
+                Log.error("Invalid JSON supplied")
+                response.status(.badRequest)
+                return
             }
-        }
+            
+            let itemType: String = json["itemtype"].stringValue
+            let itemSubType: String = json["itemsubtype"].stringValue
+            let itemName: String = json["itemname"].stringValue
+            let itemPrice: Double = json["itemprice"].doubleValue
+            let imgUrl: String = json["imgurl"].stringValue
+            
+            rest.addMenuItem(itemType: itemType, itemSubType: itemSubType, itemName: itemName, itemPrice: itemPrice, imgUrl: imgUrl) { (menuItem, error) in
+                guard error == nil else {
+                    Log.error(error!.localizedDescription)
+                    try? response.status(.badRequest).end()
+                    return
+                }
+                
+                if let menuItem = menuItem {
+                    try? response.status(.OK).send(json: JSON(menuItem.toDict())).end()
+                }
+            }
             
         } else {
             Log.error("You are not authorized to create a menu item")
@@ -198,53 +198,53 @@ public final class ResturauntController {
         }
         
         if accountType == "admin" {
-        
-        guard let id = request.parameters["id"] else {
-            Log.error("ID not specified in request")
-            response.status(.badRequest)
-            return
-        }
-        
-        guard let body = request.body else {
-            Log.error("Body not found in request")
-            response.status(.badRequest)
-            return
-        }
-        
-        guard case let .json(json) = body else {
-            Log.error("Invalid JSON specified")
-            response.status(.badRequest)
-            return
-        }
-        
-        let name: String? = json["itemname"].stringValue == "" ? nil : json["itemname"].stringValue
-        let type: String? = json["itemtype"].stringValue == "" ? nil : json["itemtype"].stringValue
-        let subType: String? = json["itemsubtype"].stringValue == "" ? nil : json["itemsubtype"].stringValue
-        let price: Double? = json["itemprice"].doubleValue == 0 ? nil : json["itemprice"].doubleValue
-        let imgUrl: String? = json["imgurl"].stringValue == "" ? nil : json["imgurl"].stringValue
-        
-        defer { next() }
-        
-        rest.editMenuItem(id: id, itemType: type, itemSubType: subType, itemName: name, itemPrice: price, imgUrl: imgUrl) { (item, error) in
             
-            guard error == nil else {
-                Log.error(error!.localizedDescription)
+            guard let id = request.parameters["id"] else {
+                Log.error("ID not specified in request")
                 response.status(.badRequest)
                 return
             }
             
-            do {
-                if let item = item {
-                    try response.status(.OK).send(json: JSON(item.toDict())).end()
-                    Log.info("Updated item: \(id)")
-                } else {
-                    Log.error("Could not unwrap item")
-                }
-            } catch {
-                Log.error("Communications error")
+            guard let body = request.body else {
+                Log.error("Body not found in request")
+                response.status(.badRequest)
+                return
             }
             
-        }
+            guard case let .json(json) = body else {
+                Log.error("Invalid JSON specified")
+                response.status(.badRequest)
+                return
+            }
+            
+            let name: String? = json["itemname"].stringValue == "" ? nil : json["itemname"].stringValue
+            let type: String? = json["itemtype"].stringValue == "" ? nil : json["itemtype"].stringValue
+            let subType: String? = json["itemsubtype"].stringValue == "" ? nil : json["itemsubtype"].stringValue
+            let price: Double? = json["itemprice"].doubleValue == 0 ? nil : json["itemprice"].doubleValue
+            let imgUrl: String? = json["imgurl"].stringValue == "" ? nil : json["imgurl"].stringValue
+            
+            defer { next() }
+            
+            rest.editMenuItem(id: id, itemType: type, itemSubType: subType, itemName: name, itemPrice: price, imgUrl: imgUrl) { (item, error) in
+                
+                guard error == nil else {
+                    Log.error(error!.localizedDescription)
+                    response.status(.badRequest)
+                    return
+                }
+                
+                do {
+                    if let item = item {
+                        try response.status(.OK).send(json: JSON(item.toDict())).end()
+                        Log.info("Updated item: \(id)")
+                    } else {
+                        Log.error("Could not unwrap item")
+                    }
+                } catch {
+                    Log.error("Communications error")
+                }
+                
+            }
             
         } else {
             Log.error("You are not authorized to create an event")
@@ -255,25 +255,43 @@ public final class ResturauntController {
     
     // Delete a menu item
     private func deleteMenuItem(request: RouterRequest, response: RouterResponse, next: () -> Void) {
-        guard let id = request.parameters["id"] else {
-            Log.error("ID not found in request")
-            response.status(.badRequest)
+        
+        guard let userProfile = request.userProfile else {
+            Log.error("You are not signed in")
+            response.status(.unauthorized)
             return
         }
         
-        defer { next() }
-        rest.deleteMenuItem(id: id) { (error) in
+        guard let accountType = userProfile.extendedProperties["user_type"] as? String else {
+            Log.error("Could not verify account type")
+            response.status(.internalServerError)
+            return
+        }
+        
+        if accountType == "admin" {
             
-            
-            if error == nil {
-                Log.info("Successfully deleted item")
-                try? response.status(.OK).send("Item deleted successfully").end()
-            } else {
-                Log.error("Could not delete item")
-                try? response.status(.internalServerError).end()
+            guard let id = request.parameters["id"] else {
+                Log.error("ID not found in request")
+                response.status(.badRequest)
+                return
             }
             
+            defer { next() }
+            rest.deleteMenuItem(id: id) { (error) in
+                
+                
+                if error == nil {
+                    Log.info("Successfully deleted item")
+                    try? response.status(.OK).send("Item deleted successfully").end()
+                } else {
+                    Log.error("Could not delete item")
+                    try? response.status(.internalServerError).end()
+                }
+            }
             
+        } else {
+            Log.error("You are not authorized to create an event")
+            try? response.status(.unauthorized).end()
         }
     }
     
@@ -352,40 +370,59 @@ public final class ResturauntController {
         
         defer { next() }
         
-        guard let body = request.body else {
-            Log.error("Cannot find body in request")
-            response.status(.badRequest)
+        guard let userProfile = request.userProfile else {
+            Log.error("You are not signed in")
+            response.status(.unauthorized)
             return
         }
         
-        guard case let .json(json) = body else {
-            Log.error("Invalid JSON supplied")
-            response.status(.badRequest)
+        guard let accountType = userProfile.extendedProperties["user_type"] as? String else {
+            Log.error("Could not verify account type")
+            response.status(.internalServerError)
             return
         }
         
-        if let eventName = json["eventname"].string, let eventDate = json["eventdate"].string, let eventDescription = json["eventdescription"].string {
+        if accountType == "admin" {
             
-            rest.addEvent(eventName: eventName, eventDate: eventDate, eventDescription: eventDescription, completion: { (addedItem, error) in
-                guard error == nil else {
-                    Log.error("Could not add event")
-                    try? response.status(.internalServerError).end()
-                    return
-                }
+            guard let body = request.body else {
+                Log.error("Cannot find body in request")
+                response.status(.badRequest)
+                return
+            }
+            
+            guard case let .json(json) = body else {
+                Log.error("Invalid JSON supplied")
+                response.status(.badRequest)
+                return
+            }
+            
+            if let eventName = json["eventname"].string, let eventDate = json["eventdate"].string, let eventDescription = json["eventdescription"].string {
                 
-                guard let addedItem = addedItem else {
-                    Log.error("Could not add event")
-                    try? response.status(.internalServerError).end()
-                    return
-                }
-                
-                try? response.status(.OK).send(json: JSON(addedItem.toDict())).end()
-            })
+                rest.addEvent(eventName: eventName, eventDate: eventDate, eventDescription: eventDescription, completion: { (addedItem, error) in
+                    guard error == nil else {
+                        Log.error("Could not add event")
+                        try? response.status(.internalServerError).end()
+                        return
+                    }
+                    
+                    guard let addedItem = addedItem else {
+                        Log.error("Could not add event")
+                        try? response.status(.internalServerError).end()
+                        return
+                    }
+                    
+                    try? response.status(.OK).send(json: JSON(addedItem.toDict())).end()
+                })
+            }
+            
+        } else {
+            Log.error("You are not authorized to create an event")
+            try? response.status(.unauthorized).end()
         }
     }
     
     private func getEvent(request: RouterRequest, response: RouterResponse, next: () -> Void) {
-       
+        
         defer { next() }
         
         guard let id = request.parameters["id"] else {
@@ -414,42 +451,61 @@ public final class ResturauntController {
     
     private func updateEvent(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
-        guard let id = request.parameters["id"] else {
-            Log.warning("Could not find id in request")
-            response.status(.badRequest)
+        guard let userProfile = request.userProfile else {
+            Log.error("You are not signed in")
+            response.status(.unauthorized)
             return
         }
         
-        guard let body = request.body else {
-            Log.warning("Could not find body in request")
-            response.status(.badRequest)
+        guard let accountType = userProfile.extendedProperties["user_type"] as? String else {
+            Log.error("Could not verify account type")
+            response.status(.internalServerError)
             return
         }
         
-        guard case let .json(json) = body else {
-            Log.warning("Invalid JSON supplied")
-            response.status(.badRequest)
-            return
-        }
-        
-        let eventName = json["eventname"].stringValue == "" ? nil : json["eventname"].stringValue
-        let eventDate = json["eventdate"].stringValue == "" ? nil : json["eventdate"].stringValue
-        let eventDesc = json["eventdescription"].stringValue == "" ? nil : json["eventdescription"].stringValue
-        
-        rest.editEvent(id: id, eventName: eventName, eventDate: eventDate, eventDescription: eventDesc) { (editedItem, error) in
-            guard error == nil else {
-                Log.error(error!.localizedDescription)
-                try? response.status(.internalServerError).end()
+        if accountType == "admin" {
+            
+            guard let id = request.parameters["id"] else {
+                Log.warning("Could not find id in request")
+                response.status(.badRequest)
                 return
             }
             
-            guard let editedItem = editedItem else {
-                Log.error(error!.localizedDescription)
-                try? response.status(.internalServerError).end()
+            guard let body = request.body else {
+                Log.warning("Could not find body in request")
+                response.status(.badRequest)
                 return
             }
             
-            try? response.status(.OK).send(json: JSON(editedItem.toDict())).end()
+            guard case let .json(json) = body else {
+                Log.warning("Invalid JSON supplied")
+                response.status(.badRequest)
+                return
+            }
+            
+            let eventName = json["eventname"].stringValue == "" ? nil : json["eventname"].stringValue
+            let eventDate = json["eventdate"].stringValue == "" ? nil : json["eventdate"].stringValue
+            let eventDesc = json["eventdescription"].stringValue == "" ? nil : json["eventdescription"].stringValue
+            
+            rest.editEvent(id: id, eventName: eventName, eventDate: eventDate, eventDescription: eventDesc) { (editedItem, error) in
+                guard error == nil else {
+                    Log.error(error!.localizedDescription)
+                    try? response.status(.internalServerError).end()
+                    return
+                }
+                
+                guard let editedItem = editedItem else {
+                    Log.error(error!.localizedDescription)
+                    try? response.status(.internalServerError).end()
+                    return
+                }
+                
+                try? response.status(.OK).send(json: JSON(editedItem.toDict())).end()
+            }
+            
+        } else {
+            Log.error("You are not authorized to create an event")
+            try? response.status(.unauthorized).end()
         }
     }
     
@@ -470,20 +526,39 @@ public final class ResturauntController {
     
     private func deleteEvent(request: RouterRequest, response: RouterResponse, next: () -> Void) {
         
-        guard let id = request.parameters["id"] else {
-            Log.warning("Could not find id in request")
-            response.status(.badRequest)
+        guard let userProfile = request.userProfile else {
+            Log.error("You are not signed in")
+            response.status(.unauthorized)
             return
         }
         
-        rest.deleteEvent(id: id) { (error) in
-            guard error == nil else {
-                Log.error(error!.localizedDescription)
-                try? response.status(.internalServerError).end()
+        guard let accountType = userProfile.extendedProperties["user_type"] as? String else {
+            Log.error("Could not verify account type")
+            response.status(.internalServerError)
+            return
+        }
+        
+        if accountType == "admin" {
+            
+            guard let id = request.parameters["id"] else {
+                Log.warning("Could not find id in request")
+                response.status(.badRequest)
                 return
             }
             
-            try? response.status(.OK).send("event deleted successfully").end()
+            rest.deleteEvent(id: id) { (error) in
+                guard error == nil else {
+                    Log.error(error!.localizedDescription)
+                    try? response.status(.internalServerError).end()
+                    return
+                }
+                
+                try? response.status(.OK).send("event deleted successfully").end()
+            }
+            
+        } else {
+            Log.error("You are not authorized to create an event")
+            try? response.status(.unauthorized).end()
         }
     }
 }
