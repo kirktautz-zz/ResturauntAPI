@@ -77,10 +77,10 @@ public protocol ResturauntAPI {
     func addReview(parentId: String, userId: String, reviewTitle: String, reviewContent: String, rating: Int, completion: @escaping (ReviewItem?, Error?) -> Void)
     
     // edit review
-    func editReview(id: String, reviewTitle: String?, reviewContent: String?, rating: String?, completion: @escaping (ReviewItem?, Error) -> Void)
+    func editReview(id: String, reviewTitle: String?, reviewContent: String?, rating: Int?, completion: @escaping (ReviewItem?, Error?) -> Void)
     
     // count review
-    func countReviews(completion: @escaping (Int?, Error?) -> Void)
+    func countReviews(parentId: String, completion: @escaping (Int?, Error?) -> Void)
     
     // clear reviews
     func clearReviews(completion: @escaping (Error?) -> Void)

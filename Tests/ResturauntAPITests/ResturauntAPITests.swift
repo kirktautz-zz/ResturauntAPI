@@ -4,7 +4,7 @@ import XCTest
 class ResturauntAPITests: XCTestCase {
     
     static var allTests = [
-        ("testGetAllMenuItems", testGetAllMenuItems), ("testAddAndGetItem", testAddAndGetItem), ("testEditItem", testEditItem), ("testDeleteItem", testDeleteItem), ("testMenuItemCount", testMenuItemCount), ("testGetSpecificMenuItem", testGetSpecificMenuItem), ("testGetItemByType", testGetItemByType), ("testAddAndGetAllEvents", testAddAndGetAllEvents), ("testGetSpecificEvent", testGetSpecificEvent), ("testEditEvent", testEditEvent), ("testDeleteEvent", testDeleteEvent), ("testCountEvents", testCountEvents), ("testAddAndGetReviews", testAddAndGetReviews)
+        ("testGetAllMenuItems", testGetAllMenuItems), ("testAddAndGetItem", testAddAndGetItem), ("testEditItem", testEditItem), ("testDeleteItem", testDeleteItem), ("testMenuItemCount", testMenuItemCount), ("testGetSpecificMenuItem", testGetSpecificMenuItem), ("testGetItemByType", testGetItemByType), ("testAddAndGetAllEvents", testAddAndGetAllEvents), ("testGetSpecificEvent", testGetSpecificEvent), ("testEditEvent", testEditEvent), ("testDeleteEvent", testDeleteEvent), ("testCountEvents", testCountEvents), ("testAddAndGetReviews", testAddAndGetReviews), ("testGetReviewById", testGetReviewById), ("testUpdateReview", testUpdateReview), ("testCountReviews", testCountReviews)
     ]
     
     var rest: Resturaunt?
@@ -580,6 +580,151 @@ class ResturauntAPITests: XCTestCase {
         waitForExpectations(timeout: 5) { (error) in
             XCTAssertNil(error)
         }
+    }
+    
+    func testGetReviewById() {
+     
+        guard let rest = rest else {
+            XCTFail()
+            return
+        }
+        
+        let getReviewIdExp = expectation(description: "Get review by id")
+        
+        rest.addReview(parentId: "1", userId: "1", reviewTitle: "GetTestTitle", reviewContent: "TEST", rating: 1) { (addedReview, error) in
+            
+            guard error == nil else {
+                XCTFail()
+                return
+            }
+            
+            guard let reviewId = addedReview?.reviewId else {
+                XCTFail()
+                return
+            }
+            
+            rest.getReviewById(id: reviewId, completion: { (retrivedReview, error) in
+                guard error == nil else {
+                    XCTFail()
+                    return
+                }
+                
+                guard let retrievedTitle = retrivedReview?.reviewTitle else {
+                    XCTFail()
+                    return
+                }
+                
+                XCTAssertEqual(retrievedTitle, "GetTestTitle")
+                getReviewIdExp.fulfill()
+            })
+        }
+        
+        waitForExpectations(timeout: 5) { (error) in
+            XCTAssertNil(error)
+        }
+    }
+    
+    // Test updating a review
+    func testUpdateReview() {
+        
+        guard let rest = rest else {
+            XCTFail()
+            return
+        }
+        
+        let editReviewExp = expectation(description: "Edit a review")
+        
+        rest.addReview(parentId: "1234", userId: "56789", reviewTitle: "TEST", reviewContent: "TEST", rating: 5) { (addedItem, error) in
+            guard error == nil else {
+                XCTFail()
+                return
+            }
+            
+            guard let addedItemId = addedItem?.reviewId else {
+                XCTFail()
+                return
+            }
+            
+            rest.editReview(id: addedItemId, reviewTitle: "This was updated", reviewContent: nil, rating: nil, completion: { (editedItem, error) in
+                guard error == nil else {
+                    XCTFail()
+                    return
+                }
+                
+                rest.getReviewById(id: addedItemId, completion: { (review, error) in
+                    
+                    guard error == nil else {
+                        XCTFail()
+                        return
+                    }
+                    
+                    guard let review = review else {
+                        XCTFail()
+                        return
+                    }
+                    
+                    XCTAssertEqual(review.reviewTitle, "This was updated")
+                    editReviewExp.fulfill()
+                })
+                
+            })
+        }
+        
+        waitForExpectations(timeout: 5) { (error) in
+            XCTAssertNil(error)
+        }
+    }
+    
+    // test count reviews
+    func testCountReviews() {
+        
+        guard let rest = rest else {
+            XCTFail()
+            return
+        }
+        
+        let countReviewsExp = expectation(description: "Count reviews for parentid")
+        
+        rest.addMenuItem(itemType: "alcohol", itemSubType: "port", itemName: "Polygamy Porter", itemPrice: 6.99, imgUrl: "url") { (menuItem, error) in
+            guard error == nil else {
+                XCTFail()
+                return
+            }
+            
+            guard let menuId = menuItem?.id else {
+                XCTFail()
+                return
+            }
+            
+            rest.addReview(parentId: menuId, userId: "userid", reviewTitle: "TITLE", reviewContent: "CONTENT", rating: 5, completion: { (reviewItem1, error1) in
+                guard error1 == nil else {
+                    XCTFail()
+                    return
+                }
+            })
+            
+            rest.addReview(parentId: menuId, userId: "userid2", reviewTitle: "TITLE2", reviewContent: "CONTENT2", rating: 2, completion: { (reviewItem2, error2) in
+                guard error2 == nil else {
+                    XCTFail()
+                    return
+                }
+            })
+            
+            rest.countReviews(parentId: menuId, completion: { (count, error) in
+                guard error == nil else {
+                    XCTFail()
+                    return
+                }
+                
+                XCTAssertEqual(count, 2)
+                countReviewsExp.fulfill()
+            })
+        }
+        
+        waitForExpectations(timeout: 5) { (error) in
+            XCTAssertNil(error)
+        }
+        
     }
     
 }

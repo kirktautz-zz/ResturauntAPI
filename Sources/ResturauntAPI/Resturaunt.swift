@@ -724,20 +724,125 @@ public class Resturaunt: ResturauntAPI {
     // get specific review
     public func getReviewById(id: String, completion: @escaping (ReviewItem?, Error?) -> Void) {
         
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil ,APICollectionError.databaseError)
+            return
+        }
+        
+        let collection = db!["reviews"]
+        
+        do {
+            
+            let objectId = try ObjectId(id)
+            guard let result = try collection.findOne("_id" == objectId) else {
+                Log.error("Could not get any reviews")
+                completion(nil, APICollectionError.databaseError)
+                return
+            }
+            
+            if let reviewTitle = String(result["reviewtitle"]), let reviewContent = String(result["reviewcontent"]), let postDate = Date(result["date"]), let rating = Int(result["rating"]), let parentId = String(result["parentid"]), let userId = String(result["userid"]) {
+                
+                let newReview = ReviewItem(reviewId: id, userId: userId, reviewTitle: reviewTitle, reviewContent: reviewContent, postDate: postDate, rating: rating, parentItem: parentId)
+                
+                completion(newReview, nil)
+                
+                } else {
+                
+                Log.error("Could not get review fields")
+                completion(nil, APICollectionError.parseError)
+            }
+            
+        } catch {
+            
+        }
     }
     
     // edit review
-    public func editReview(id: String, reviewTitle: String?, reviewContent: String?, rating: String?, completion: @escaping (ReviewItem?, Error) -> Void) {
+    public func editReview(id: String, reviewTitle: String?, reviewContent: String?, rating: Int?, completion: @escaping (ReviewItem?, Error?) -> Void) {
+        
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil, APICollectionError.databaseError)
+            return
+        }
+        
+        let collection = db!["reviews"]
+        
+        do {
+            
+            let objectId = try ObjectId(id)
+            let result = try collection.findOne("_id" == objectId)
+            
+            guard let review = result else {
+                Log.error("Could not get review")
+                completion(nil, APICollectionError.databaseError)
+                return
+            }
+            
+            if let dbTitle = String(review["reviewtitle"]), let dbContent = String(review["reviewcontent"]), let dbUserId = String(review["userid"]), let dbParentId = String(review["parentid"]), let dbRating = Int(review["rating"]) {
+                
+                let title = reviewTitle ?? dbTitle
+                let content = reviewContent ?? dbContent
+                let r = rating ?? dbRating
+                let date = Date()
+                
+                var doc = Document()
+                doc["reviewtitle"] = title
+                doc["reviewcontent"] = content
+                doc["rating"] = r
+                doc["date"] = date
+                doc["userid"] = dbUserId
+                doc["parentid"] = dbParentId
+                
+                
+                try collection.update("_id" == objectId, to: doc)
+                
+                let newReview = ReviewItem(reviewId: id, userId: dbUserId, reviewTitle: title, reviewContent: content, postDate: date, rating: r, parentItem: dbParentId)
+                
+                completion(newReview, nil)
+            } else {
+            
+            Log.error("Could not get review details")
+            completion(nil, APICollectionError.parseError)
+            
+            }
+  
+        } catch {
+            Log.error("Communications error")
+            completion(nil, APICollectionError.databaseError)
+        }
         
     }
     
     // count review
-    public func countReviews(completion: @escaping (Int?, Error?) -> Void) {
+    public func countReviews(parentId: String, completion: @escaping (Int?, Error?) -> Void) {
+        
+        guard let db = try? connectToDB(), db != nil else {
+            Log.error("Could not connect to database")
+            completion(nil, APICollectionError.databaseError)
+            return
+        }
+        
+        let collection = db!["reviews"]
+        
+        do {
+            
+            let results = try collection.find("parentid" == parentId)
+            let count = try results.count()
+            
+            completion(count, nil)
+        } catch {
+            
+            Log.error("Could not get reviews")
+            completion(nil, APICollectionError.databaseError)
+        }
         
     }
     
     // clear reviews
     public func clearReviews(completion: @escaping (Error?) -> Void) {
+        
         guard let db = try? connectToDB(), db != nil else {
             Log.error("Could not connect to database")
             completion(nil)
